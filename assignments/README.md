@@ -1,6 +1,6 @@
 # 8640-web_services_and_applications
 
-<img src="./images/Panda_programmer.png" alt="Panda" width="300">   
+<img src="images/Panda_programmer.png" alt="Panda" width="300">   
 
 Repository for Course work (Assignments and Project) on ATU Module **25-26: 8640 -- Web Services and Applications**   
 </br>
@@ -15,7 +15,7 @@ To avoid issues of submission, I have kept this repository separate from the Pro
 </br></br>
 |Task|Task|Date Submitted|Link|
 |--------|--------|-----------|-----------|
-|1 |Assignment Task # 1|08/02/2026|[assignment2-carddraw.py](assignments/assignment2-carddraw.py)|
+|1 |Assignment Task # 1|08/02/2026|[assignment2-carddraw.py](assignment2-carddraw.py)|
 
 
 
