@@ -16,6 +16,8 @@ To avoid issues of submission, I have kept this repository separate from the Pro
 |Task|Task|Date Submitted|Link|
 |--------|--------|-----------|-----------|
 |1 |Assignment Task # 1|08/02/2026|[assignment2-carddraw.py](assignment2-carddraw.py)|
+|2 |Assignment Task # 3|20/02/2026|[assignment03-cso.ipynb](assignment03-cso.ipynb)|
+
 
 
 
