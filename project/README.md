@@ -1,7 +1,7 @@
 # 8640-web_services_and_applications
 # <font color="orange">Big Project</font>
 
-<img src="images/panda_TV.png" alt="Panda" width="300">   
+<img src="images/panda_tv.png" alt="Panda" width="300">   
 
 Repository for Big Project Work assigned on ATU Module **25-26: 8640 -- Web Services and Applications**   
 </br>
