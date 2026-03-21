@@ -1,0 +1,16 @@
+# ======================================================
+#   Built-in libraries (no installation needed):
+#
+#   shutil - File operations
+#   logging - Logging functionality
+#   glob - File pattern matching
+#   datetime - Date/time handling
+#   os - Operating system interface
+# ======================================================
+
+# external libraries (installation needed):
+requests
+mysql-connector-python
+python-dotenv
+logging
+flask
