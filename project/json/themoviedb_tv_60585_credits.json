@@ -1,0 +1,163 @@
+{
+    "cast": [
+        {
+            "adult": false,
+            "gender": 2,
+            "id": 39389,
+            "known_for_department": "Acting",
+            "name": "Titus Welliver",
+            "original_name": "Titus Welliver",
+            "popularity": 2.7853,
+            "profile_path": "/3hTwn7Maktr6ONq1VvfqyRacjiv.jpg",
+            "character": "Harry Bosch",
+            "credit_id": "5389ef5fc3a3680aed001281",
+            "order": 0
+        },
+        {
+            "adult": false,
+            "gender": 2,
+            "id": 74123,
+            "known_for_department": "Acting",
+            "name": "Jamie Hector",
+            "original_name": "Jamie Hector",
+            "popularity": 1.5088,
+            "profile_path": "/cmpOE0ZP5oTy5i9bZSNDbv6v2Ol.jpg",
+            "character": "Jerry Edgar",
+            "credit_id": "5738c5c7c3a36820b600066e",
+            "order": 1
+        },
+        {
+            "adult": false,
+            "gender": 1,
+            "id": 33457,
+            "known_for_department": "Acting",
+            "name": "Amy Aquino",
+            "original_name": "Amy Aquino",
+            "popularity": 2.087,
+            "profile_path": "/59E061EJyEl2CLcBd12p9Vi7q0B.jpg",
+            "character": "Grace Billets",
+            "credit_id": "5738c60092514111a800064b",
+            "order": 2
+        },
+        {
+            "adult": false,
+            "gender": 2,
+            "id": 129101,
+            "known_for_department": "Acting",
+            "name": "Lance Reddick",
+            "original_name": "Lance Reddick",
+            "popularity": 2.3954,
+            "profile_path": "/22mVtEXZbpt0J7S0LhIhdkfRrZV.jpg",
+            "character": "Irvin Irving",
+            "credit_id": "5738c62b92514151a0000e79",
+            "order": 4
+        },
+        {
+            "adult": false,
+            "gender": 1,
+            "id": 935720,
+            "known_for_department": "Acting",
+            "name": "Madison Lintz",
+            "original_name": "Madison Lintz",
+            "popularity": 1.938,
+            "profile_path": "/aHXaQQ8qCSU21vqG92UqAFMiR89.jpg",
+            "character": "Maddie Bosch",
+            "credit_id": "5738c72ec3a3684db4000eab",
+            "order": 6
+        }
+    ],
+    "crew": [
+        {
+            "adult": false,
+            "gender": 2,
+            "id": 1199564,
+            "known_for_department": "Acting",
+            "name": "Mike Malone",
+            "original_name": "Mike Malone",
+            "popularity": 0.9445,
+            "profile_path": null,
+            "credit_id": "64a5ae411bf26600c78a4f68",
+            "department": "Art",
+            "job": "Set Dresser"
+        },
+        {
+            "adult": false,
+            "gender": 2,
+            "id": 1483635,
+            "known_for_department": "Camera",
+            "name": "Geoff George",
+            "original_name": "Geoff George",
+            "popularity": 0.498,
+            "profile_path": "/t7orvPbQiuGqbVmSPt5rJ0QoD6r.jpg",
+            "credit_id": "67bb7221a96dc18979becce3",
+            "department": "Camera",
+            "job": "Camera Operator"
+        },
+        {
+            "adult": false,
+            "gender": 1,
+            "id": 1634521,
+            "known_for_department": "Production",
+            "name": "Theresa Snider",
+            "original_name": "Theresa Snider",
+            "popularity": 0.1654,
+            "profile_path": null,
+            "credit_id": "68f01d1a0f34f061a0ad7b60",
+            "department": "Production",
+            "job": "Associate Producer"
+        },
+        {
+            "adult": false,
+            "gender": 2,
+            "id": 1590799,
+            "known_for_department": "Production",
+            "name": "Henrik Bastin",
+            "original_name": "Henrik Bastin",
+            "popularity": 0.3909,
+            "profile_path": "/nCinrf6r9mEHwHez7QEXf4q39w1.jpg",
+            "credit_id": "5d0641cfc3a36877db214830",
+            "department": "Production",
+            "job": "Executive Producer"
+        },
+        {
+            "adult": false,
+            "gender": 1,
+            "id": 1018357,
+            "known_for_department": "Production",
+            "name": "Laura Schiff",
+            "original_name": "Laura Schiff",
+            "popularity": 0.4193,
+            "profile_path": null,
+            "credit_id": "5efde5e2f03174003751006b",
+            "department": "Production",
+            "job": "Casting"
+        },
+        {
+            "adult": false,
+            "gender": 1,
+            "id": 1776006,
+            "known_for_department": "Production",
+            "name": "Carrie Audino",
+            "original_name": "Carrie Audino",
+            "popularity": 0.3698,
+            "profile_path": null,
+            "credit_id": "5efde5f2a76ac50035fd95aa",
+            "department": "Production",
+            "job": "Casting"
+        },
+        {
+            "adult": false,
+            "gender": 2,
+            "id": 57993,
+            "known_for_department": "Writing",
+            "name": "Michael Connelly",
+            "original_name": "Michael Connelly",
+            "popularity": 1.043,
+            "profile_path": "/Ad8At6nf4XWtVnOPbF8ceRTRMnQ.jpg",
+            "credit_id": "60c8771dca8354006e332d19",
+            "department": "Writing",
+            "job": "Novel"
+        }
+    ],
+    "id": 60585
+}

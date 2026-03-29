@@ -1,0 +1,47 @@
+'''
+Name: api_tmdb.py
+Description: 
+Object-based API client responsible for interacting with the TMDb API.
+'''
+
+
+import time
+
+import requests
+import urllib3
+import config as cfg # Configuration Details for TMDb API
+
+class api_tmdb:
+    def __init__(self):
+        # Disable IPv6 to avoid issues with long API responses due to proxies
+        urllib3.util.connection.HAS_IPV6 = False
+
+        # This file is for testing the TMDb API connection and tokens. 
+        self.base_url = cfg.TMDB_TOKENS['tmdb_url']
+        self.session = requests.Session()
+        self.session.trust_env = False # proxies cause issues with long API responses
+        self.session.headers.update({
+            "Authorization": f"Bearer {cfg.TMDB_TOKENS['tmdb_api_key']}",
+            "Accept": "application/json"
+        })
+        self.timeout = 15
+
+    def _get(self, endpoint: str):
+        url = f"{self.base_url}{endpoint}"
+        print(f"Calling TMDb: {url}")   # useful while debugging
+        response = self.session.get(url, timeout=self.timeout)
+        response.raise_for_status()
+        time.sleep(1) # Sleep for 1 second to respect TMDb API rate limits
+        return response.json()
+    
+    def get_show_season_details(self, show_id: str):
+        return self._get(f"/tv/{show_id}")
+    
+    def get_episode_details(self, show_id: str, season_number: int):
+        return self._get(f"/tv/{show_id}/season/{season_number}")
+    
+    def get_episode_cast_crew_details(self, show_id: str, season_number: int, episode_number: int):
+        return self._get(f"/tv/{show_id}/season/{season_number}/episode/{episode_number}/credits")
+    
+    def get_person_details(self, person_id: str):
+        return self._get(f"/person/{person_id}")

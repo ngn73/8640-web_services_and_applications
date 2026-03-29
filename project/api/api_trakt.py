@@ -6,10 +6,14 @@ Object-based API client responsible for interacting with the Trakt API.
 
 
 import requests
+import urllib3
 import config as cfg # Configuration Details for Trakt API
 
 class api_trakt:
     def __init__(self):
+        # Disable IPv6 to avoid issues with long API responses due to proxies
+        urllib3.util.connection.HAS_IPV6 = False
+
         # This file is for testing the Trakt API connection and tokens. It will print the name/id/watcheddate of shows in my watched history.
         self.base_url = cfg.TRAKT_TOKENS['trakt_url']
         self.headers = {

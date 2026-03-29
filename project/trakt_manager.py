@@ -4,9 +4,8 @@ import api.api_trakt as api #separate API client
 import data.dao_trakt as dao
 import data.dbManager as db #separate Data Access Object
 
-
 # Convert the raw json "watched" data from the API into a DataFrame
-def watched_data_to_df(watched_data):
+def watched_data_to_df(self, watched_data):
     watched_rows = []
     # Flatten the watched data to get a row for each episode
     # with the show title/id, season number, episode number, and last watched date.
@@ -88,7 +87,6 @@ if __name__ == "__main__":
     ratings_df = ratings_data_to_df(ratings_data)
     final_df = merge_watched_and_ratings(watched_df, ratings_df)    
 
-    #Update Data "trakt_status" Table
+    #Update DataTable "trakt_status" 
     save_to_db( final_df)
 
-    print("Data from Trakt API has been successfully saved to the database.")
