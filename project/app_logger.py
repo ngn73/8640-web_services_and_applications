@@ -1,5 +1,6 @@
 import logging
 import config as cfg
+import api.api_ntfy as ntfy # for sending mobile notifications
 
 class app_logger:
     
@@ -31,19 +32,37 @@ class app_logger:
         else:
             logging.disable()
         
+        #Also utilize the ntfy service to send notifications to my mobile for important events/errors.
+        self.ntfy_client = ntfy.api_ntfy()
 
-    # record a log
-    def logInfoMessage(self, str_message:str):
+
+    # record a Info log
+    def logInfoMessage(self, str_message:str, ntfy:bool=False):
         self.logger.info(str_message)
-        
-    # record a log
-    def logDebugMessage(self, str_message:str):
-        self.logger.debug(str_message)
+        #Send NTFY Notification if requested.
+        if ntfy:
+            self.ntfy_client.send_notification("tmdb_manager", str_message)
+ 
 
-    # record a log
-    def logWarningMessage(self, str_message:str):
+    # record a Debug log
+    def logDebugMessage(self, str_message:str, ntfy:bool=False):
+        self.logger.debug(str_message)
+        #send NTFY Notification if requested.
+        if ntfy:
+            self.ntfy_client.send_notification("tmdb_manager", str_message)
+  
+
+
+    # record a Warning log
+    def logWarningMessage(self, str_message:str, ntfy:bool=False):
         self.logger.warning(str_message)
-        
-    # record a log
-    def logErrorMessage(self, str_message:str):
+        #send NTFY Notification if requested.
+        if ntfy:
+            self.ntfy_client.send_notification("tmdb_manager", str_message)
+ 
+    # record an Error log
+    def logErrorMessage(self, str_message:str, ntfy:bool=False):
         self.logger.error(str_message)
+        #send NTFY Notification if requested.
+        if ntfy:
+            self.ntfy_client.send_notification("tmdb_manager", str_message)

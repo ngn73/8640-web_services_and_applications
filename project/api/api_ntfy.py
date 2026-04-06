@@ -3,6 +3,8 @@
 Name: api_ntfy.py
 Description: 
 Object-based API client responsible for interacting with the Ntfy Notification API.
+The NTFY Service is used to send real-time notifications to my mobile (when dealing with long-running processes)
+Another "Logging" module is also used for more detailed logs that I can also review later.
 '''
 
 import requests

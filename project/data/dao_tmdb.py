@@ -15,7 +15,8 @@ class dao_tmdb:
         self.mylogger = logger.app_logger(__name__)
         self.db = mydb
 
-    def bulk_insert_shows(self, shows_rows: list):
+    def  bulk_insert_shows(self, shows_rows: list):
+        self.mylogger.logInfoMessage("Starting bulk insert of show details into database...")
         for row in shows_rows:
             tmdb_id = row['tmdb_id']
             name = row['name']
@@ -30,7 +31,8 @@ class dao_tmdb:
 
             self.insert_show(tmdb_id, name, overview, first_air_date, status, vote_average, vote_count, number_of_seasons, number_of_episodes, poster_path)
 
-        
+
+    #These insert methods with 1 connection and 1 commit per row proved to be inefficient and crash-prone.
     def insert_show(self, tmdb_id: str, name: str, overview: str, first_air_date: str, status: str, vote_average: float, vote_count: int, number_of_seasons: int, number_of_episodes: int, poster_path: str):
         with self.db.get_connection() as conn:
             try:
@@ -39,10 +41,35 @@ class dao_tmdb:
                     cur.callproc("InsertTMDBShow", args)
                 conn.commit()
             except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_show -- Error inserting show with TMDb ID {tmdb_id}, {name}, {overview}, {first_air_date}, {status}, {vote_average}, {vote_count}, {number_of_seasons}, {number_of_episodes}, {poster_path}")
                 conn.rollback()
                 raise
 
+    #Improved efficiency
+    def insert_show_batch(self, rows: list[tuple[int, int]]):
+        conn = None
+        cur = None
+
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn) as cur:
+                    for show in rows:
+                        args = (show["tmdb_id"], show["name"], show["overview"], show["first_air_date"], show["status"], show["vote_average"], show["vote_count"], show["number_of_seasons"], show["number_of_episodes"], show["poster_path"])
+                        cur.callproc("InsertTMDBShow", args)
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_show_batch -- Error inserting batch: {e}"
+                )
+                raise   
+            finally:
+                if cur:
+                    cur.close()
+                if conn and conn.is_connected():
+                    conn.close()
+
     def bulk_insert_seasons(self, seasons_rows: list):
+        self.mylogger.logInfoMessage("Starting bulk insert of season details into database...")
         for row in seasons_rows:
             tmdb_season_id = row['tmdb_season_id']
             tmdb_show_id = row['tmdb_id']
@@ -55,6 +82,7 @@ class dao_tmdb:
 
             self.insert_season(tmdb_season_id, tmdb_show_id, season_number, name, air_date, episode_count, overview, poster_path)
 
+    #These insert methods with 1 connection and 1 commit per row proved to be inefficient and crash-prone.
     def insert_season(self, tmdb_season_id: int, tmdb_show_id: int, season_number: int, name:str, air_date: str, episode_count: int, overview: str, poster_path: str):
         with self.db.get_connection() as conn:
             try:
@@ -63,10 +91,127 @@ class dao_tmdb:
                     cur.callproc("InsertTMDBSeason", args)
                 conn.commit()
             except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_season -- Error inserting season with TMDb Season ID {tmdb_season_id}, TMDb Show ID {tmdb_show_id}, Season Number {season_number}, Name {name}, Air Date {air_date}, Episode Count {episode_count}, Overview {overview}, Poster Path {poster_path}")
                 conn.rollback()
                 raise
 
+    #Improved efficiency
+    def insert_season_batch(self, rows: list[tuple[int, int]]):
+        conn = None
+        cur = None
+
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn) as cur:
+                    for season in rows:
+                        args = (season["tmdb_season_id"], season["tmdb_id"], season["season_number"], season["name"], season["overview"], season["air_date"], season["episode_count"],  season["poster_path"])
+                        cur.callproc("InsertTMDBSeason", args)
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_season_batch -- Error inserting batch: {e}"
+                )
+                raise   
+            finally:
+                if cur:
+                    cur.close()
+                if conn and conn.is_connected():
+                    conn.close()
+
+    def bulk_insert_show_network(self, show_network_rows: list):
+        self.mylogger.logInfoMessage("Starting bulk insert of show network details into database...")
+        for row in show_network_rows:
+            tmdb_network_id = row['tmdb_network_id']
+            tmdb_show_id = row['tmdb_show_id']
+
+
+            self.insert_show_network(tmdb_network_id, tmdb_show_id) 
+
+    #These insert methods with 1 connection and 1 commit per row proved to be inefficient and crash-prone.
+    def insert_show_network(self, tmdb_network_id: int, tmdb_show_id: int):
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn) as cur:
+                    args = (tmdb_network_id, tmdb_show_id)
+                    cur.callproc("InsertTMDBShowNetwork", args)
+                conn.commit()
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_show_network -- Error inserting show network with TMDb Network ID {tmdb_network_id}, TMDb Show ID {tmdb_show_id}")
+                conn.rollback()
+                raise
+    
+    #Improved efficiency
+    def insert_show_network_batch(self, rows: list[tuple[int, int]]):
+        conn = None
+        cur = None
+
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn) as cur:
+                    for show_network in rows:
+                        args = (show_network["tmdb_network_id"], show_network["tmdb_show_id"])
+                        cur.callproc("InsertTMDBShowNetwork", args)
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_show_network_batch -- Error inserting batch: {e}"
+                )
+                raise   
+            finally:
+                if cur:
+                    cur.close()
+                if conn and conn.is_connected():
+                    conn.close()
+
+    def bulk_insert_networks(self, network_rows: list):
+        self.mylogger.logInfoMessage("Starting bulk insert of network details into database...")
+        for row in network_rows:
+            tmdb_network_id = row['tmdb_network_id']
+            name = row['name']
+            origin_country = row['origin_country']
+            logo_path = row['logo_path']
+
+            self.insert_network(tmdb_network_id, name, origin_country, logo_path)
+
+    #These insert methods with 1 connection and 1 commit per row proved to be inefficient and crash-prone.
+    def insert_network(self, tmdb_network_id: int, name: str, origin_country: str, logo_path: str):
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn) as cur:
+                    args = (tmdb_network_id, name, origin_country, logo_path)
+                    cur.callproc("InsertTMDBNetwork", args)
+                conn.commit()
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_network -- Error inserting network with TMDb Network ID {tmdb_network_id}, Name {name}, Origin Country {origin_country}, Logo Path {logo_path}")
+                conn.rollback()
+                raise
+
+    #Improved efficiency
+    def insert_network_batch(self, rows: list[tuple[int, int]]):
+        conn = None
+        cur = None
+
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn) as cur:
+                    for network in rows:
+                        args = (network["tmdb_network_id"], network["name"], network["origin_country"], network["logo_path"])
+                        cur.callproc("InsertTMDBNetwork", args)
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_network_batch -- Error inserting batch: {e}"
+                )
+                raise   
+            finally:
+                if cur:
+                    cur.close()
+                if conn and conn.is_connected():
+                    conn.close()
+
+    
     def bulk_insert_episodes(self, episodes_rows: list):
+        self.mylogger.logInfoMessage("Starting bulk insert of episode details into database...")
         for row in episodes_rows:
             tmdb_episode_id = row['tmdb_episode_id']
             tmdb_show_id = row['tmdb_show_id']
@@ -82,6 +227,7 @@ class dao_tmdb:
 
             self.insert_episode(tmdb_episode_id, tmdb_show_id, season_number, episode_number, name, overview, air_date, runtime,  vote_average, vote_count, still_path)
     
+    #These insert methods with 1 connection and 1 commit per row proved to be inefficient and crash-prone.
     def insert_episode(self, tmdb_episode_id: int, tmdb_show_id: int, season_number: int, episode_number: int, name: str, overview: str, air_date: str, runtime: int,  vote_average: float, vote_count: int, still_path: str):
         with self.db.get_connection() as conn:
             try:
@@ -90,10 +236,36 @@ class dao_tmdb:
                     cur.callproc("InsertTMDBEpisode", args)
                 conn.commit()
             except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_episode -- Error inserting episode with TMDb Episode ID {tmdb_episode_id}, TMDb Show ID {tmdb_show_id}, Season Number {season_number}, Episode Number {episode_number}, Name {name}, Overview {overview}, Air Date {air_date}, Runtime {runtime}, Vote Average {vote_average}, Vote Count {vote_count}, Still Path {still_path}")
                 conn.rollback()
                 raise   
-    
+
+    #Improved efficiency
+    def insert_episode_batch(self, rows: list[tuple[int, int]]):
+        conn = None
+        cur = None
+
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn) as cur:
+                    for episode in rows:
+                        args = (episode["tmdb_episode_id"], episode["tmdb_show_id"], episode["season_number"], episode["episode_number"], episode["name"], episode["overview"], episode["air_date"], episode["runtime"], episode["vote_average"], episode["vote_count"], episode["still_path"])
+                        cur.callproc("InsertTMDBEpisode", args)
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_episode_batch -- Error inserting batch: {e}"
+                )
+                raise   
+            finally:
+                if cur:
+                    cur.close()
+                if conn and conn.is_connected():
+                    conn.close()
+
+
     def bulk_insert_person(self, person_rows: list):
+        self.mylogger.logInfoMessage("Starting bulk insert of person details into database...")
         for row in person_rows:
             person_id = row['tmdb_person_id']
             name = row['person_name']
@@ -105,7 +277,7 @@ class dao_tmdb:
 
             self.insert_person(person_id, name, biography, birthday, gender, place_of_birth, profile_path)
 
-
+    #These insert methods with 1 connection and 1 commit per row proved to be inefficient and crash-prone.
     def insert_person(self, person_id: int, name: str, biography: str, birth_date: str,gender: int,  place_of_birth: str, profile_path: str):
         with self.db.get_connection() as conn:
             try:
@@ -114,10 +286,39 @@ class dao_tmdb:
                     cur.callproc("InsertTMDBPerson", args)  
                 conn.commit()
             except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_person -- Error inserting person with TMDb Person ID {person_id}, Name {name}, Biography {biography[0:10] + ' ..... '}, Birth Date {birth_date}, Gender {gender}, Place of Birth {place_of_birth}, Profile Path {profile_path}")
                 conn.rollback()
                 raise   
+
+    #Improved efficiency
+    def insert_person_batch(self, rows: list[tuple[int, int]]):
+        conn = None
+        cur = None
+
+        with self.db.get_connection() as conn:  
+            try:
+                with self.db.get_cursor(conn) as cur:
+                    for person in rows:
+                        args = (person["tmdb_person_id"], person["person_name"], person["biography"], person["birthday"], person["gender"], person["place_of_birth"], person["profile_path"])
+                        cur.callproc("InsertTMDBPerson", args)  
+                conn.commit()
+
+            except Exception as e:
+                if conn:
+                    conn.rollback()
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_person_batch -- Error inserting batch: {e}"
+                )
+                raise
+
+            finally:
+                if cur:
+                    cur.close()
+                if conn and conn.is_connected():
+                    conn.close()
+
     
     def bulk_insert_cast_crew(self, episode_cast_rows: list, episode_crew_rows: list):
+        self.mylogger.logInfoMessage("Starting bulk insert of episode cast and crew details into database...")
         for row in episode_cast_rows:
             tmdb_episode_id = row['tmdb_episode_id']
             person_id = row['tmdb_person_id']
@@ -134,6 +335,7 @@ class dao_tmdb:
 
             self.insert_crew_member(tmdb_episode_id, person_id, job, department)  
 
+    #These insert methods with 1 connection and 1 commit per row proved to be inefficient and crash-prone.
     def insert_crew_member(self, tmdb_episode_id: int, person_id: int, job: str, department: str):
         with self.db.get_connection() as conn:
             try:
@@ -142,9 +344,36 @@ class dao_tmdb:
                     cur.callproc("InsertTMDBEpisodeCrew", args)
                 conn.commit()
             except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_crew_member -- Error inserting crew member with TMDb Episode ID {tmdb_episode_id}, TMDb Person ID {person_id}, Job {job}, Department {department}")    
                 conn.rollback()
                 raise
 
+    #Improved efficiency
+    def insert_crew_batch(self, rows: list[tuple[int, int]]):
+        conn = None
+        cur = None
+
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn) as cur:
+                    for crew_member in rows:
+                        args = (crew_member["tmdb_episode_id"], crew_member["tmdb_person_id"], crew_member["job"], crew_member["department"])
+                        cur.callproc("InsertTMDBEpisodeCrew", args)
+                conn.commit()
+            except Exception as e:
+                if conn:
+                    conn.rollback()
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_crew_batch -- Error inserting batch: {e}"
+                )
+                raise
+
+            finally:
+                if cur:
+                    cur.close()
+                if conn and conn.is_connected():
+                    conn.close()
+
+    #These insert methods with 1 connection and 1 commit per row proved to be inefficient and crash-prone.
     def insert_cast_member(self, tmdb_episode_id: int, person_id: int, character: str, order: int):
         with self.db.get_connection() as conn:
             try:
@@ -153,8 +382,34 @@ class dao_tmdb:
                     cur.callproc("InsertTMDBEpisodeCast", args)
                 conn.commit()
             except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_cast_member -- Error inserting cast member with TMDb Episode ID {tmdb_episode_id}, TMDb Person ID {person_id}, Character {character}, Order {order}")  
                 conn.rollback()
                 raise
+
+    #Improved efficiency
+    def insert_cast_batch(self, rows: list[tuple[int, int]]):
+        conn = None
+        cur = None
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn) as cur:
+                    for cast_member in rows:
+                        args = (cast_member["tmdb_episode_id"], cast_member["tmdb_person_id"], cast_member["character"], cast_member["order"])
+                        cur.callproc("InsertTMDBEpisodeCast", args)
+                conn.commit()
+
+            except Exception as e:
+                if conn:
+                    conn.rollback()
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_cast_batch -- Error inserting batch: {e}"
+                )
+                raise
+
+            finally:
+                if cur:
+                    cur.close()
+                if conn and conn.is_connected():
+                    conn.close()
 
     def clear_status(self):
         with self.db.get_connection() as conn:
@@ -163,6 +418,7 @@ class dao_tmdb:
                     cur.callproc("ClearTraktStatus")
                 conn.commit()
             except:
+                self.mylogger.logErrorMessage("dao_tmdb.clear_status -- Error clearing trakt_status table")
                 conn.rollback()
                 raise
     

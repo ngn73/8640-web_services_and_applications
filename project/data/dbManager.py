@@ -12,7 +12,6 @@ import mysql.connector
 from mysql.connector import Error
 from contextlib import contextmanager
 import config as cfg
-import jinja2 as tpl #for updating script templates(NO SQL IN CODE!!)
 
 class dbManager:
     def __init__(self, host: str, user: str, password: str, database: str):
@@ -49,27 +48,3 @@ class dbManager:
             if cursor is not None:
                 cursor.close()
 
-    def extract_query(self, filename:str, params=None):
-        str_query = ""
-        str_err = ""
-        try:
-            with open(filename, 'r') as f:
-                str_query = f.read()
-        except FileNotFoundError:
-            str_err = f"The file path {filename} does not exist."
-        except pd.errors.EmptyDataError:
-            str_err = f"The file '{filename}' is empty."
-        except PermissionError:
-            str_err = f"Permission denied to Read {filename}."
-        except Exception as ex:
-            str_err = f"An unexpected error occurred while loading file {filename} : {ex}"
-        
-        if(len(str_err) == 0):
-            final_query = str_query
-            template = tpl.Template(str_query)
-            final_query = template.render( params or {})  #Avoid None type errors (some scripts need 0 parameters)
-            final_query = final_query.strip('\n')  #finally remove additional carriage returns from file
-            return final_query
-        else:
-            self.mylogger.logErrorMessage(f"Error extracting query string : {str_err}")
-            return ""

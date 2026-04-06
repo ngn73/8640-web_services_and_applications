@@ -6,8 +6,8 @@ COLLATE utf8mb4_unicode_ci;
 -- Use Database
 USE MEDIA_ANALYTICS_DB;
 
-/*
-Use this to Drop and Recreate the TABLES.
+
+--Use this to Drop and Recreate the TABLES.
 DROP TABLE IF EXISTS TRAKT_STATUS;
 DROP TABLE IF EXISTS TMDB_SHOW;
 DROP TABLE IF EXISTS TMDB_SEASON;
@@ -15,8 +15,22 @@ DROP TABLE IF EXISTS TMDB_EPISODE;
 DROP TABLE IF EXISTS TMDB_PERSON;
 DROP TABLE IF EXISTS TMDB_EPISODE_CAST;
 DROP TABLE IF EXISTS TMDB_EPISODE_CREW;
-*/
+DROP TABLE IF EXISTS TMDB_SHOW_NETWORK;
+DROP TABLE IF EXISTS TMDB_NETWORK;
 
+-- Create Table
+CREATE TABLE TRAKT_AUTH (
+    auth_id            INT PRIMARY KEY,
+    client_id          VARCHAR(255) NOT NULL,
+    client_secret      VARCHAR(255) NOT NULL,
+    redirect_uri       VARCHAR(500) NOT NULL,
+    access_token       TEXT NOT NULL,
+    refresh_token      TEXT NOT NULL,
+    token_type         VARCHAR(50) NULL,
+    expires_in         INT NULL,
+    created_at          BIGINT NULL,
+    refreshed_at       DATETIME NULL
+);
 
 -- Create Table
 CREATE TABLE TRAKT_STATUS (
@@ -27,6 +41,7 @@ CREATE TABLE TRAKT_STATUS (
     last_watched_at DATETIME,
     rating INT NULL,
     rated_at DATETIME NULL,
+    updated_at DATETIME NULL,
 
     UNIQUE KEY uniq_episode (tmdb_id, season, episode),
     INDEX idx_tmdb (tmdb_id),
@@ -118,4 +133,28 @@ CREATE TABLE TMDB_EPISODE_CREW (
 
     CONSTRAINT fk_episode_crew_person
         FOREIGN KEY (tmdb_person_id) REFERENCES TMDB_PERSON(tmdb_person_id)
+);
+
+CREATE TABLE TMDB_SHOW_NETWORK (
+    tmdb_network_id INT NOT NULL,
+    tmdb_show_id INT NOT NULL,
+    
+    PRIMARY KEY (tmdb_show_id, tmdb_network_id),
+
+    CONSTRAINT fk_show_network_show
+        FOREIGN KEY (tmdb_show_id) REFERENCES TMDB_SHOW(tmdb_id),
+
+    CONSTRAINT fk_show_network_network
+        FOREIGN KEY (tmdb_network_id) REFERENCES TMDB_NETWORK(tmdb_network_id)
+);
+
+CREATE TABLE TMDB_NETWORK (
+    tmdb_network_id INT NOT NULL,
+    name VARCHAR(255),
+    origin_country VARCHAR(10),
+    logo_path VARCHAR(255),
+    PRIMARY KEY (tmdb_network_id),
+
+    CONSTRAINT fk_network_show
+        FOREIGN KEY (tmdb_network_id) REFERENCES TMDB_SHOW(network_id)
 );

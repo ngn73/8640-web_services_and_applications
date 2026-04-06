@@ -3,6 +3,8 @@ USE media_analytics_db;
 
 /*
 Use this to Drop and Recreate the stored procedures.
+DROP PROCEDURE IF EXISTS GetTraktAuth;
+DROP PROCEDURE IF EXISTS UpdateTraktAuth;
 DROP PROCEDURE IF EXISTS InsertTraktStatus;
 DROP PROCEDURE IF EXISTS UpdateTraktStatus;
 DROP PROCEDURE IF EXISTS GetTraktStatus;
@@ -15,10 +17,60 @@ DROP PROCEDURE IF EXISTS InsertTMDBEpisode;
 DROP PROCEDURE IF EXISTS InsertTMDBPerson;
 DROP PROCEDURE IF EXISTS InsertTMDBEpisodeCast;
 DROP PROCEDURE IF EXISTS InsertTMDBEpisodeCrew;
+DROP PROCEDURE IF EXISTS ClearTMDBTables;
+DROP PROCEDURE IF EXISTS InsertTMDBShowNetwork;
+DROP PROCEDURE IF EXISTS InsertTMDBNetwork;
+DROP PROCEDURE IF EXISTS Get_TMDB_Trakt_Delta;
 */
 
 -- Change delimiter so MySQL doesn't stop at first ;
 DELIMITER $$
+
+
+-- =================================
+-- Procedure 0: GetTraktAuth
+-- =================================
+CREATE PROCEDURE GetTraktAuth()
+BEGIN
+    SELECT 
+        auth_id,
+        client_id,
+        client_secret,
+        redirect_uri,
+        access_token,
+        refresh_token,
+        token_type,
+        expires_in,
+        created_at,
+        refreshed_at
+    FROM TRAKT_AUTH
+    LIMIT 1;
+END $$
+
+
+-- =================================
+-- Procedure 0: UpdateTraktAuth
+-- =================================
+CREATE PROCEDURE UpdateTraktAuth(
+    IN p_access_token CHAR(36),
+    IN p_refresh_token TEXT,
+    IN p_token_type VARCHAR(50),
+    IN p_expires_in INT,
+    IN p_created_at BIGINT
+)
+BEGIN
+    UPDATE TRAKT_AUTH
+    SET access_token = p_access_token,
+        refresh_token = p_refresh_token,
+        token_type = p_token_type,
+        expires_in = p_expires_in,
+        created_at = p_created_at,
+        refreshed_at = NOW(),
+        updated_at = NOW(),
+        last_refresh_status = 'SUCCESS',
+        last_refresh_error = NULL
+    WHERE auth_id = 1;
+END $$
 
 -- =========================================
 -- Procedure 1: InsertTraktStatus
@@ -33,8 +85,8 @@ CREATE PROCEDURE InsertTraktStatus(
     IN p_rated_at DATETIME
 )
 BEGIN
-    INSERT INTO TRAKT_STATUS (trakt_status_id, tmdb_id, season, episode, last_watched_at, rating, rated_at)
-    VALUES (p_trakt_status_id, p_tmdb_id, p_season, p_episode, p_last_watched_at, p_rating, p_rated_at);
+    INSERT INTO TRAKT_STATUS (trakt_status_id, tmdb_id, season, episode, last_watched_at, rating, rated_at, updated_at)
+    VALUES (p_trakt_status_id, p_tmdb_id, p_season, p_episode, p_last_watched_at, p_rating, p_rated_at, NOW());
 END $$
 
 -- =========================================
@@ -50,7 +102,7 @@ CREATE PROCEDURE UpdateTraktStatus(
 )
 BEGIN
     UPDATE TRAKT_STATUS 
-    SET last_watched_at = p_last_watched_at, rating = p_rating, rated_at = p_rated_at
+    SET last_watched_at = p_last_watched_at, rating = p_rating, rated_at = p_rated_at, updated_at = NOW()
     WHERE tmdb_id = p_tmdb_id AND season = p_season AND episode = p_episode;
 END $$
 
@@ -77,6 +129,7 @@ END $$
 CREATE PROCEDURE ClearTraktStatus()
 BEGIN
     DELETE FROM TRAKT_STATUS;
+    SELECT COUNT(*) AS remaining_rows FROM TRAKT_STATUS;
 END $$
 
 -- =========================================
@@ -108,10 +161,20 @@ CREATE PROCEDURE InsertTMDBShow(
 BEGIN
     INSERT INTO TMDB_SHOW (
         tmdb_id, name, overview, first_air_date, status, vote_average, 
-        vote_count, number_of_seasons, number_of_episodes, poster_path)
+        vote_count, number_of_seasons, number_of_episodes,  poster_path)
     VALUES 
     (p_tmdb_id, p_name, p_overview, p_first_air_date, p_status, p_vote_average, 
-    p_vote_count, p_number_of_seasons, p_number_of_episodes, p_poster_path);
+    p_vote_count, p_number_of_seasons, p_number_of_episodes, p_poster_path)
+    ON DUPLICATE KEY UPDATE
+        name = VALUES(name),
+        overview = VALUES(overview),
+        first_air_date = VALUES(first_air_date),
+        status = VALUES(status),
+        vote_average = VALUES(vote_average),
+        vote_count = VALUES(vote_count),
+        number_of_seasons = VALUES(number_of_seasons),
+        number_of_episodes = VALUES(number_of_episodes),
+        poster_path = VALUES(poster_path);
 END $$
 
 -- =========================================
@@ -131,7 +194,13 @@ BEGIN
     INSERT INTO TMDB_SEASON (
         tmdb_season_id, tmdb_show_id, season_number, name, overview, air_date, episode_count, poster_path)
     VALUES 
-    (p_tmdb_season_id, p_tmdb_show_id, p_season_number, p_name, p_overview, p_air_date, p_episode_count, p_poster_path);
+    (p_tmdb_season_id, p_tmdb_show_id, p_season_number, p_name, p_overview, p_air_date, p_episode_count, p_poster_path)
+    ON DUPLICATE KEY UPDATE
+        name = VALUES(name),
+        overview = VALUES(overview),
+        air_date = VALUES(air_date),
+        episode_count = VALUES(episode_count),
+        poster_path = VALUES(poster_path);
 END $$
 
 -- =========================================
@@ -154,7 +223,15 @@ BEGIN
     INSERT INTO TMDB_EPISODE (
         tmdb_episode_id, tmdb_show_id, season_number, episode_number, name, overview, air_date, runtime, vote_average, vote_count, still_path)
     VALUES 
-    (p_tmdb_episode_id, p_tmdb_show_id, p_season_number, p_episode_number, p_name, p_overview, p_air_date, p_runtime, p_vote_average, p_vote_count, p_still_path);
+    (p_tmdb_episode_id, p_tmdb_show_id, p_season_number, p_episode_number, p_name, p_overview, p_air_date, p_runtime, p_vote_average, p_vote_count, p_still_path)
+    ON DUPLICATE KEY UPDATE
+        name = VALUES(name),
+        overview = VALUES(overview),
+        air_date = VALUES(air_date),
+        runtime = VALUES(runtime),
+        vote_average = VALUES(vote_average),
+        vote_count = VALUES(vote_count),
+        still_path = VALUES(still_path);
 END $$  
 
 -- =========================================
@@ -173,7 +250,14 @@ BEGIN
     INSERT INTO TMDB_PERSON (
         tmdb_person_id, person_name, biography, birthday, gender, place_of_birth, profile_path)
     VALUES 
-    (p_tmdb_person_id, p_name, p_biography, p_birthday, p_gender, p_place_of_birth, p_profile_path);
+    (p_tmdb_person_id, p_name, p_biography, p_birthday, p_gender, p_place_of_birth, p_profile_path)
+    ON DUPLICATE KEY UPDATE
+        person_name = VALUES(person_name),
+        biography   = VALUES(biography),
+        birthday    = VALUES(birthday),
+        gender      = VALUES(gender),
+        place_of_birth = VALUES(place_of_birth),            
+        profile_path = VALUES(profile_path);
 END $$
 
 -- ===============================================
@@ -189,7 +273,10 @@ BEGIN
     INSERT INTO TMDB_EPISODE_CAST (
         tmdb_episode_id, tmdb_person_id, character_name, cast_order)
     VALUES 
-    (p_tmdb_episode_id, p_tmdb_person_id, p_character, p_order);
+    (p_tmdb_episode_id, p_tmdb_person_id, p_character, p_order)
+    ON DUPLICATE KEY UPDATE
+        character_name = VALUES(character_name),
+        cast_order     = VALUES(cast_order);
 END $$
 
 -- ===============================================
@@ -205,7 +292,10 @@ BEGIN
     INSERT INTO TMDB_EPISODE_CREW (
         tmdb_episode_id, tmdb_person_id, job, department)
     VALUES 
-    (p_tmdb_episode_id, p_tmdb_person_id, p_job, p_department);
+    (p_tmdb_episode_id, p_tmdb_person_id, p_job, p_department)
+    ON DUPLICATE KEY UPDATE
+        job = VALUES(job),
+        department = VALUES(department);
 END $$
 
 -- ===============================================
@@ -218,7 +308,71 @@ BEGIN
     DELETE FROM TMDB_PERSON;
     DELETE FROM TMDB_EPISODE;
     DELETE FROM TMDB_SEASON;
+    DELETE FROM TMDB_SHOW_NETWORK;
+    DELETE FROM TMDB_NETWORK;
     DELETE FROM TMDB_SHOW;
+
+    SELECT 
+        (SELECT COUNT(*) FROM TMDB_SHOW) AS remaining_shows,
+        (SELECT COUNT(*) FROM TMDB_SEASON) AS remaining_seasons,
+        (SELECT COUNT(*) FROM TMDB_EPISODE) AS remaining_episodes,
+        (SELECT COUNT(*) FROM TMDB_PERSON) AS remaining_persons,
+        (SELECT COUNT(*) FROM TMDB_EPISODE_CAST) AS remaining_episode_cast,
+        (SELECT COUNT(*) FROM TMDB_EPISODE_CREW) AS remaining_episode_crew,
+        (SELECT COUNT(*) FROM TMDB_SHOW_NETWORK) AS remaining_show_network,
+        (SELECT COUNT(*) FROM TMDB_NETWORK) AS remaining_networks;
+
+END $$
+
+-- ===============================================
+-- Procedure 13: INSERT TMDB Show Network Details       
+-- ===============================================
+CREATE PROCEDURE InsertTMDBShowNetwork(
+    IN p_tmdb_network_id INT,
+    IN p_tmdb_show_id INT
+)
+BEGIN
+    INSERT INTO TMDB_SHOW_NETWORK (
+        tmdb_network_id, tmdb_show_id)
+    VALUES 
+    (p_tmdb_network_id, p_tmdb_show_id)
+    ON DUPLICATE KEY UPDATE
+        tmdb_network_id = VALUES(tmdb_network_id),
+        tmdb_show_id    = VALUES(tmdb_show_id);
+END $$
+
+-- ===============================================
+-- Procedure 14: INSERT TMDB Network Details
+-- ===============================================
+CREATE PROCEDURE InsertTMDBNetwork(
+    IN p_tmdb_network_id INT,
+    IN p_name VARCHAR(255),
+    IN p_origin_country VARCHAR(10),
+    IN p_logo_path VARCHAR(255)
+)
+BEGIN
+    INSERT INTO TMDB_NETWORK (
+        tmdb_network_id, name, origin_country, logo_path)
+    VALUES 
+    (p_tmdb_network_id, p_name, p_origin_country, p_logo_path)
+    ON DUPLICATE KEY UPDATE
+        name            = VALUES(name),
+        origin_country  = VALUES(origin_country),
+        logo_path       = VALUES(logo_path);
+END $$
+
+-- ===============================================
+-- Procedure 15: Get TMDb-Trakt Differences
+-- ===============================================
+CREATE PROCEDURE Get_TMDB_Trakt_Delta(
+)
+BEGIN
+    SELECT DISTINCT ts.tmdb_id
+    FROM TRAKT_STATUS ts
+    LEFT JOIN TMDB_SHOW s
+    ON s.tmdb_show_id = ts.tmdb_id
+    WHERE ts.tmdb_id IS NOT NULL
+    AND s.tmdb_show_id IS NULL;
 END $$
 
 
