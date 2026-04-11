@@ -1,1 +1,0 @@
-"C:\Users\Niall\anaconda3\python.exe" "C:\Users\Niall\Documents\College\8640-web_services_and_applications\project\schedule_jobs.py" tmdb_full

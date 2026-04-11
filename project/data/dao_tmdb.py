@@ -15,6 +15,22 @@ class dao_tmdb:
         self.mylogger = logger.app_logger(__name__)
         self.db = mydb
 
+    def get_show_details(self, tmdb_id: str) -> dict:
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    args = (tmdb_id,)
+                    cur.callproc("GetShowDetailsByTMDBId", args)
+
+                    for res in cur.stored_results():
+                        row = res.fetchone()
+                        return row if row else {}
+                conn.commit()
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_show_details -- Error retrieving show details with TMDb ID {tmdb_id}")
+                conn.rollback()
+                raise
+
     def  bulk_insert_shows(self, shows_rows: list):
         self.mylogger.logInfoMessage("Starting bulk insert of show details into database...")
         for row in shows_rows:

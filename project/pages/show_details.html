@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ show.name }}</title>
+</head>
+<body>
+    <header>
+        <h2>Header and menu</h2>
+    </header>
+
+    <main style="background-image: url('{{ url_for('static', filename='images/backdrop_test.png') }}');">
+        <section>
+            <h1>{{ show.name }}</h1>
+            <p>{{ show.overview }}</p>
+            <p>Status: {{ show.status }}</p>
+            <p>Rating: {{ show.vote_average }}</p>
+            <p>Vote Count: {{ show.vote_count }}</p>
+            <p>First Air Date: {{ show.first_air_date }}</p>
+            <p>Seasons: {{ show.number_of_seasons }}</p>
+            <p>Episodes: {{ show.number_of_episodes }}</p>
+        </section>
+
+        <aside>
+            <img src="https://image.tmdb.org/t/p/w500{{ show.poster_path }}" alt="{{ show.name }}">
+        </aside>
+
+        <div>
+            <button>Navigation Button 1</button>
+            <button>Navigation Button 2</button>
+        </div>
+    </main>
+
+    <footer>
+        <p>Footer</p>
+    </footer>
+</body>
+</html>

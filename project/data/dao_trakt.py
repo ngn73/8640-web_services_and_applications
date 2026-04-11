@@ -125,7 +125,7 @@ class dao_trakt:
                 raise
 
     # Get Distinct list of TMDB Ids under "trakt_status" Table
-    def get_distinct_shows(self):
+    def get_distinct_shows(self): 
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn) as cur:

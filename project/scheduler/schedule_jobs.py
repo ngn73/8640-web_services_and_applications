@@ -1,6 +1,6 @@
 import sys
-import tmdb_manager
-import trakt_manager
+import project.scheduler.tmdb_manager as tmdb_manager
+import project.scheduler.trakt_manager as trakt_manager
 
 tmdb = tmdb_manager.tmdb_mgr()
 trakt = trakt_manager.trakt_mgr()

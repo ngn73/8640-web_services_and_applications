@@ -28,7 +28,8 @@ DELIMITER $$
 
 
 -- =================================
--- Procedure 0: GetTraktAuth
+-- Procedure : GetTraktAuth
+-- Get Trakt Authentication Details
 -- =================================
 CREATE PROCEDURE GetTraktAuth()
 BEGIN
@@ -49,7 +50,8 @@ END $$
 
 
 -- =================================
--- Procedure 0: UpdateTraktAuth
+-- Procedure : UpdateTraktAuth
+-- Update Trakt Authentication Details
 -- =================================
 CREATE PROCEDURE UpdateTraktAuth(
     IN p_access_token CHAR(36),
@@ -73,7 +75,9 @@ BEGIN
 END $$
 
 -- =========================================
--- Procedure 1: InsertTraktStatus
+-- Procedure : InsertTraktStatus
+-- Insert trakt status for a specific 
+-- TMDB show, season, and episode
 -- =========================================
 CREATE PROCEDURE InsertTraktStatus(
     IN p_trakt_status_id CHAR(36),
@@ -90,7 +94,9 @@ BEGIN
 END $$
 
 -- =========================================
--- Procedure 2: UpdateTraktStatus
+-- Procedure : UpdateTraktStatus
+-- Update trakt status for a specific 
+-- TMDB show, season, and episode
 -- =========================================
 CREATE PROCEDURE UpdateTraktStatus(
     IN p_tmdb_id VARCHAR(100),
@@ -107,7 +113,8 @@ BEGIN
 END $$
 
 -- =========================================
--- Procedure 3: SelectTraktStatus
+-- Procedure : GetTraktStatus
+-- Get trakt status for a specific TMDB show, season, and episode
 -- =========================================
 CREATE PROCEDURE GetTraktStatus(
     IN p_tmdb_id VARCHAR(100),
@@ -124,7 +131,8 @@ BEGIN
 END $$
 
 -- =========================================
--- Procedure 4: Clear TraktStatus Table
+-- Procedure : ClearTraktStatus
+-- Delete all data from "trakt_status" Table
 -- =========================================
 CREATE PROCEDURE ClearTraktStatus()
 BEGIN
@@ -133,7 +141,8 @@ BEGIN
 END $$
 
 -- =========================================
--- Procedure 5: Get Distinct TMDB Ids under "trakt_status" Table
+-- Procedure : GetDistinctTMDBIds
+-- Get Distinct TMDB Ids under "trakt_status" Table
 -- =========================================
 CREATE PROCEDURE GetDistinctTMDBIds()
 BEGIN
@@ -143,8 +152,31 @@ BEGIN
     ORDER BY tmdb_id;
 END $$
 
+--==========================================
+-- Procedure : GetShowDetailsByTMDBId
+-- Get Show Details for a specific TMDB Id
+--==========================================
+CREATE PROCEDURE GetShowDetailsByTMDBId(
+    IN p_tmdb_id VARCHAR(100)
+)
+BEGIN
+    SELECT 
+        tmdb_id,
+        name,
+        overview,
+        first_air_date,
+        status,
+        vote_average,
+        vote_count,
+        number_of_seasons,
+        number_of_episodes,
+        poster_path
+    FROM TMDB_SHOW
+    WHERE tmdb_id = p_tmdb_id;
+END $$
 -- =========================================
--- Procedure 6: INSERT TMDB Show Details
+-- Procedure : InsertTMDBShow
+-- INSERT TMDB Show Details
 -- =========================================
 CREATE PROCEDURE InsertTMDBShow(
     IN p_tmdb_id VARCHAR(100),
@@ -178,7 +210,8 @@ BEGIN
 END $$
 
 -- =========================================
--- Procedure 7: INSERT TMDB Season Details
+-- Procedure : InsertTMDBSeason
+-- INSERT TMDB Season Details
 -- =========================================
 CREATE PROCEDURE InsertTMDBSeason(
     IN p_tmdb_season_id INT,
@@ -204,7 +237,8 @@ BEGIN
 END $$
 
 -- =========================================
--- Procedure 8: INSERT TMDB Episode Details     
+-- Procedure : InsertTMDBEpisode
+-- INSERT TMDB Episode Details     
 -- =========================================
 CREATE PROCEDURE InsertTMDBEpisode(
     IN p_tmdb_episode_id INT,
@@ -235,7 +269,8 @@ BEGIN
 END $$  
 
 -- =========================================
--- Procedure 9: INSERT TMDB Person Details     
+-- Procedure : InsertTMDBPerson   
+-- Insert TMDB Person Details (for Cast and Crew)  
 -- =========================================
 CREATE PROCEDURE InsertTMDBPerson(
     IN p_tmdb_person_id INT,
@@ -261,7 +296,8 @@ BEGIN
 END $$
 
 -- ===============================================
--- Procedure 10: INSERT TMDB Episode Cast Details   
+-- Procedure : InsertTMDBEpisodeCast
+-- INSERT TMDB Episode Cast Details   
 -- ===============================================
 CREATE PROCEDURE InsertTMDBEpisodeCast(
     IN p_tmdb_episode_id INT,
@@ -280,7 +316,8 @@ BEGIN
 END $$
 
 -- ===============================================
--- Procedure 11: INSERT TMDB Episode Crew Details   
+-- Procedure : InsertTMDBEpisodeCrew
+-- INSERT TMDB Episode Crew Details   
 -- ===============================================
 CREATE PROCEDURE InsertTMDBEpisodeCrew(
     IN p_tmdb_episode_id INT,
@@ -299,7 +336,8 @@ BEGIN
 END $$
 
 -- ===============================================
--- Procedure 12: CLEAR TMDB Tables   
+-- Procedure : ClearTMDBTables
+-- DELETE all data from TMDB-related tables
 -- ===============================================
 CREATE PROCEDURE ClearTMDBTables()
 BEGIN
@@ -325,7 +363,8 @@ BEGIN
 END $$
 
 -- ===============================================
--- Procedure 13: INSERT TMDB Show Network Details       
+-- Procedure : InsertTMDBShowNetwork
+-- INSERT TMDB Network Details (for a Show)      
 -- ===============================================
 CREATE PROCEDURE InsertTMDBShowNetwork(
     IN p_tmdb_network_id INT,
@@ -342,7 +381,8 @@ BEGIN
 END $$
 
 -- ===============================================
--- Procedure 14: INSERT TMDB Network Details
+-- Procedure : InsertTMDBNetwork
+-- INSERT TMDB Network Details
 -- ===============================================
 CREATE PROCEDURE InsertTMDBNetwork(
     IN p_tmdb_network_id INT,
@@ -362,7 +402,8 @@ BEGIN
 END $$
 
 -- ===============================================
--- Procedure 15: Get TMDb-Trakt Differences
+-- Procedure : Get_TMDB_Trakt_Delta
+-- Get TMDb-Trakt Differences
 -- ===============================================
 CREATE PROCEDURE Get_TMDB_Trakt_Delta(
 )
@@ -370,9 +411,9 @@ BEGIN
     SELECT DISTINCT ts.tmdb_id
     FROM TRAKT_STATUS ts
     LEFT JOIN TMDB_SHOW s
-    ON s.tmdb_show_id = ts.tmdb_id
+    ON s.tmdb_id = ts.tmdb_id
     WHERE ts.tmdb_id IS NOT NULL
-    AND s.tmdb_show_id IS NULL;
+    AND s.tmdb_id IS NULL;
 END $$
 
 
