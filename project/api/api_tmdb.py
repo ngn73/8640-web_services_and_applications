@@ -42,16 +42,22 @@ class api_tmdb:
 
         return response.json()
     
-    def get_show_season_details(self, show_id: str):
+    def get_show_season_details(self, tmdb_id: str):
         #Show details endpoint also returns season and network details
-        return self._get(f"/tv/{show_id}")
+        return self._get(f"/tv/{tmdb_id}")
     
-    def get_episode_details(self, show_id: str, season_number: int):
-        return self._get(f"/tv/{show_id}/season/{season_number}")
+    def get_episode_details(self, tmdb_id: str, season_number: int):
+        #This endpoint returns the episode details for all episodes in the season
+        return self._get(f"/tv/{tmdb_id}/season/{season_number}")
     
-    def get_episode_cast_crew_details(self, show_id: str, season_number: int, episode_number: int):
+    def get_episode_cast_crew_details(self, tmdb_id: str, season_number: int, episode_number: int):
         # This endpoint returns both cast and crew details for the episode
-        return self._get(f"/tv/{show_id}/season/{season_number}/episode/{episode_number}/credits")
+        return self._get(f"/tv/{tmdb_id}/season/{season_number}/episode/{episode_number}/credits")
     
     def get_person_details(self, person_id: str):
+        # This endpoint returns the person's details
         return self._get(f"/person/{person_id}")
+    
+    def get_show_artwork(self, tmdb_id: str):
+        # This endpoint returns all artwork for the show (posters, backdrops, logos)
+        return self._get(f"/tv/{tmdb_id}/images")

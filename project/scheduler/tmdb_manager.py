@@ -1,7 +1,7 @@
 
 
 import pandas as pd
-import config as cfg  # configuration details
+import config as cfg
 import api.api_tmdb as api # separate API client
 import data.dao_tmdb as dao
 import data.dao_trakt as dao_trakt # needed to initially extract list of watched shows.
@@ -29,6 +29,7 @@ class tmdb_mgr:
         self.episode_crew_rows = []
         self.extracted_person_ids = set() # utilize a set to avoid duplicates as the same person may appear in multiple episodes
         self.person_rows = []
+        self.show_artwork_rows = []
 
 
     # Get reference to the database manager instance
@@ -46,9 +47,9 @@ class tmdb_mgr:
         show_idx = 0
         for tmdb_id in trakt_shows:
             show_idx += 1
-            #if(show_idx > 20):
-                #break   #Testing limited number of shows
-            self.myLogger.logInfoMessage(f"Extracting details for show {show_idx} of {len(trakt_shows)} with TMDb ID {tmdb_id}...")
+            if(show_idx % 10 == 0): # log progress every 10 shows
+                self.myLogger.logInfoMessage(f"Extracting details for show {show_idx} of {len(trakt_shows)} with TMDb ID {tmdb_id}...", ntfy=True)
+
             try:
                 self._extract_TMDB_show_details(tmdb_id)    #Start the recursive extraction process to populate all the relevant lists
             except Exception as e:
@@ -86,6 +87,7 @@ class tmdb_mgr:
         # Insert the list data into the database
         self.myLogger.logInfoMessage("TMDb data insertion starting ...")
 
+        self.dao_tmdb.clear_tmdb() # Clear the existing TMDB data before inserting the new data.
         self.dao_tmdb.insert_show_batch(self.shows_rows)
         self.dao_tmdb.insert_season_batch(self.seasons_rows)
         self.dao_tmdb.insert_show_network_batch(self.show_network_rows)
@@ -94,6 +96,7 @@ class tmdb_mgr:
         self.dao_tmdb.insert_cast_batch(self.episode_cast_rows)
         self.dao_tmdb.insert_crew_batch(self.episode_crew_rows)
         self.dao_tmdb.insert_person_batch(self.person_rows)
+        self.dao_tmdb.insert_show_artwork_batch(self.show_artwork_rows)
 
         self.myLogger.logInfoMessage("TMDb data insertion completed.")
 
@@ -137,8 +140,7 @@ class tmdb_mgr:
             "vote_average": show_details.get("vote_average"),
             "vote_count": show_details.get("vote_count"),
             "number_of_seasons": show_details.get("number_of_seasons"),
-            "number_of_episodes": show_details.get("number_of_episodes"),
-            "poster_path": show_details.get("poster_path")
+            "number_of_episodes": show_details.get("number_of_episodes")
         })
 
         # Extract the relevant details for each Season from the response json
@@ -154,9 +156,9 @@ class tmdb_mgr:
                 "poster_path": season.get("poster_path")
             })
 
-            self._extract_TMDB_episode_details(tmdb_id, season.get("season_number"))
+        self._extract_TMDB_episode_details(tmdb_id, season.get("season_number"))
 
-        #finally extract the network details for the show (from same API call)
+        # extract the network details for the show (from same API call)
         for network in show_details.get("networks", []):
             self.network_rows.append({
                 "tmdb_network_id": network.get("id"),
@@ -168,7 +170,39 @@ class tmdb_mgr:
                 "tmdb_show_id": tmdb_id,
                 "tmdb_network_id": network.get("id")
             })
-
+        
+        #finally extract all artwork paths for the show (from separate API call)
+        try:
+            artwork_details = self.api_client.get_show_artwork(tmdb_id) 
+        except Exception as e:
+            self.myLogger.logErrorMessage(f"Error occurred while fetching artwork details for TMDb ID {tmdb_id}: {str(e)}")
+            raise
+        
+        for artwork in artwork_details.get("posters", []):
+            self.show_artwork_rows.append({
+                "tmdb_show_id": tmdb_id,
+                "file_path": artwork.get("file_path"),
+                "artwork_type": "poster",
+                "width": artwork.get("width"),
+                "height": artwork.get("height")
+            })
+        for artwork in artwork_details.get("backdrops", []):
+            self.show_artwork_rows.append({
+                "tmdb_show_id": tmdb_id,
+                "file_path": artwork.get("file_path"),
+                "artwork_type": "backdrop",
+                "width": artwork.get("width"),
+                "height": artwork.get("height")
+            })
+        for artwork in artwork_details.get("logos", []):
+            self.show_artwork_rows.append({
+                "tmdb_show_id": tmdb_id,
+                "file_path": artwork.get("file_path"),
+                "artwork_type": "logo",
+                "width": artwork.get("width"),
+                "height": artwork.get("height")
+            })
+    
     def _extract_TMDB_episode_details(self, tmdb_id: str, season_number: int):
         try:
             episode_details = self.api_client.get_episode_details(tmdb_id, season_number)

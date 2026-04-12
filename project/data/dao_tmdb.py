@@ -43,21 +43,20 @@ class dao_tmdb:
             vote_count = row['vote_count']
             number_of_seasons = row['number_of_seasons']
             number_of_episodes = row['number_of_episodes']
-            poster_path = row['poster_path']
 
-            self.insert_show(tmdb_id, name, overview, first_air_date, status, vote_average, vote_count, number_of_seasons, number_of_episodes, poster_path)
+            self.insert_show(tmdb_id, name, overview, first_air_date, status, vote_average, vote_count, number_of_seasons, number_of_episodes)
 
 
     #These insert methods with 1 connection and 1 commit per row proved to be inefficient and crash-prone.
-    def insert_show(self, tmdb_id: str, name: str, overview: str, first_air_date: str, status: str, vote_average: float, vote_count: int, number_of_seasons: int, number_of_episodes: int, poster_path: str):
+    def insert_show(self, tmdb_id: str, name: str, overview: str, first_air_date: str, status: str, vote_average: float, vote_count: int, number_of_seasons: int, number_of_episodes: int):
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn) as cur:
-                    args = (tmdb_id, name, overview, first_air_date, status, vote_average, vote_count, number_of_seasons, number_of_episodes, poster_path)
+                    args = (tmdb_id, name, overview, first_air_date, status, vote_average, vote_count, number_of_seasons, number_of_episodes)
                     cur.callproc("InsertTMDBShow", args)
                 conn.commit()
             except:
-                self.mylogger.logErrorMessage(f"dao_tmdb.insert_show -- Error inserting show with TMDb ID {tmdb_id}, {name}, {overview}, {first_air_date}, {status}, {vote_average}, {vote_count}, {number_of_seasons}, {number_of_episodes}, {poster_path}")
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_show -- Error inserting show with TMDb ID {tmdb_id}, {name}, {overview}, {first_air_date}, {status}, {vote_average}, {vote_count}, {number_of_seasons}, {number_of_episodes}")
                 conn.rollback()
                 raise
 
@@ -70,7 +69,7 @@ class dao_tmdb:
             try:
                 with self.db.get_cursor(conn) as cur:
                     for show in rows:
-                        args = (show["tmdb_id"], show["name"], show["overview"], show["first_air_date"], show["status"], show["vote_average"], show["vote_count"], show["number_of_seasons"], show["number_of_episodes"], show["poster_path"])
+                        args = (show["tmdb_id"], show["name"], show["overview"], show["first_air_date"], show["status"], show["vote_average"], show["vote_count"], show["number_of_seasons"], show["number_of_episodes"])
                         cur.callproc("InsertTMDBShow", args)
                 conn.commit()
             except Exception as e:
@@ -225,6 +224,27 @@ class dao_tmdb:
                 if conn and conn.is_connected():
                     conn.close()
 
+    def insert_show_artwork_batch(self, rows: list[tuple[int, int]]):
+        conn = None
+        cur = None
+
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn) as cur:
+                    for artwork in rows:
+                        args = (artwork["tmdb_show_id"], artwork["file_path"], artwork["artwork_type"], artwork["width"], artwork["height"])
+                        cur.callproc("InsertTMDBShowArtwork", args)
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_show_artwork_batch -- Error inserting batch: {e}"
+                )
+                raise   
+            finally:
+                if cur:
+                    cur.close()
+                if conn and conn.is_connected():
+                    conn.close()
     
     def bulk_insert_episodes(self, episodes_rows: list):
         self.mylogger.logInfoMessage("Starting bulk insert of episode details into database...")
@@ -427,14 +447,14 @@ class dao_tmdb:
                 if conn and conn.is_connected():
                     conn.close()
 
-    def clear_status(self):
+    def clear_tmdb(self):
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn) as cur:
-                    cur.callproc("ClearTraktStatus")
+                    cur.callproc("ClearTMDBTables")
                 conn.commit()
             except:
-                self.mylogger.logErrorMessage("dao_tmdb.clear_status -- Error clearing trakt_status table")
+                self.mylogger.logErrorMessage("dao_tmdb.clear_tmdb -- Error clearing TMDB tables")
                 conn.rollback()
                 raise
     

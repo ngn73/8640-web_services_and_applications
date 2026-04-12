@@ -58,8 +58,7 @@ CREATE TABLE TMDB_SHOW (
     vote_average DECIMAL(3, 1),
     vote_count INT,
     number_of_seasons INT,
-    number_of_episodes INT,
-    poster_path VARCHAR(255)
+    number_of_episodes INT
 );
 
 CREATE TABLE TMDB_SEASON (
@@ -157,4 +156,18 @@ CREATE TABLE TMDB_NETWORK (
 
     CONSTRAINT fk_network_show
         FOREIGN KEY (tmdb_network_id) REFERENCES TMDB_SHOW(network_id)
+);
+
+CREATE TABLE TMDB_SHOW_ARTWORK (
+    artwork_id INT AUTO_INCREMENT PRIMARY KEY,
+    tmdb_show_id INT NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    artwork_type VARCHAR(50) NOT NULL,
+    width INT NULL,
+    height INT NULL,
+
+    UNIQUE KEY unique_artwork (tmdb_show_id, artwork_type, file_path(100)),
+
+    CONSTRAINT fk_show_artwork_show
+        FOREIGN KEY (tmdb_show_id) REFERENCES TMDB_SHOW(tmdb_show_id)
 );

@@ -11,6 +11,7 @@ DROP PROCEDURE IF EXISTS GetTraktStatus;
 DROP PROCEDURE IF EXISTS ClearTraktStatus;
 DROP PROCEDURE IF EXISTS GetDistinctTMDBIds;
 
+DROP PROCEDURE IF EXISTS GetShowDetailsByTMDBId;
 DROP PROCEDURE IF EXISTS InsertTMDBShow;
 DROP PROCEDURE IF EXISTS InsertTMDBSeason;
 DROP PROCEDURE IF EXISTS InsertTMDBEpisode;
@@ -152,10 +153,10 @@ BEGIN
     ORDER BY tmdb_id;
 END $$
 
---==========================================
+-- ==========================================
 -- Procedure : GetShowDetailsByTMDBId
 -- Get Show Details for a specific TMDB Id
---==========================================
+-- ==========================================
 CREATE PROCEDURE GetShowDetailsByTMDBId(
     IN p_tmdb_id VARCHAR(100)
 )
@@ -169,11 +170,11 @@ BEGIN
         vote_average,
         vote_count,
         number_of_seasons,
-        number_of_episodes,
-        poster_path
+        number_of_episodes
     FROM TMDB_SHOW
     WHERE tmdb_id = p_tmdb_id;
 END $$
+
 -- =========================================
 -- Procedure : InsertTMDBShow
 -- INSERT TMDB Show Details
@@ -187,16 +188,15 @@ CREATE PROCEDURE InsertTMDBShow(
     IN p_vote_average DECIMAL(3, 1),
     IN p_vote_count INT,
     IN p_number_of_seasons INT,
-    IN p_number_of_episodes INT,
-    IN p_poster_path VARCHAR(255)
+    IN p_number_of_episodes INT
 )
 BEGIN
     INSERT INTO TMDB_SHOW (
         tmdb_id, name, overview, first_air_date, status, vote_average, 
-        vote_count, number_of_seasons, number_of_episodes,  poster_path)
+        vote_count, number_of_seasons, number_of_episodes)
     VALUES 
     (p_tmdb_id, p_name, p_overview, p_first_air_date, p_status, p_vote_average, 
-    p_vote_count, p_number_of_seasons, p_number_of_episodes, p_poster_path)
+    p_vote_count, p_number_of_seasons, p_number_of_episodes)
     ON DUPLICATE KEY UPDATE
         name = VALUES(name),
         overview = VALUES(overview),
@@ -205,8 +205,7 @@ BEGIN
         vote_average = VALUES(vote_average),
         vote_count = VALUES(vote_count),
         number_of_seasons = VALUES(number_of_seasons),
-        number_of_episodes = VALUES(number_of_episodes),
-        poster_path = VALUES(poster_path);
+        number_of_episodes = VALUES(number_of_episodes);
 END $$
 
 -- =========================================
@@ -349,6 +348,7 @@ BEGIN
     DELETE FROM TMDB_SHOW_NETWORK;
     DELETE FROM TMDB_NETWORK;
     DELETE FROM TMDB_SHOW;
+    DELETE FROM TMDB_SHOW_ARTWORK;
 
     SELECT 
         (SELECT COUNT(*) FROM TMDB_SHOW) AS remaining_shows,
@@ -358,7 +358,8 @@ BEGIN
         (SELECT COUNT(*) FROM TMDB_EPISODE_CAST) AS remaining_episode_cast,
         (SELECT COUNT(*) FROM TMDB_EPISODE_CREW) AS remaining_episode_crew,
         (SELECT COUNT(*) FROM TMDB_SHOW_NETWORK) AS remaining_show_network,
-        (SELECT COUNT(*) FROM TMDB_NETWORK) AS remaining_networks;
+        (SELECT COUNT(*) FROM TMDB_NETWORK) AS remaining_networks,
+        (SELECT COUNT(*) FROM TMDB_SHOW_ARTWORK) AS remaining_show_artwork;
 
 END $$
 
@@ -414,6 +415,27 @@ BEGIN
     ON s.tmdb_id = ts.tmdb_id
     WHERE ts.tmdb_id IS NOT NULL
     AND s.tmdb_id IS NULL;
+END $$
+
+-- =====================================================
+-- Procedure : InsertTMDBShowArtwork
+-- Insert TMDb Show Artwork Details for a specific show
+-- =====================================================
+CREATE PROCEDURE InsertTMDBShowArtwork(
+    IN p_tmdb_show_id INT,
+    IN p_file_path VARCHAR(255),
+    IN p_artwork_type VARCHAR(50),
+    IN p_width INT,
+    IN p_height INT
+)
+BEGIN
+    INSERT INTO TMDB_SHOW_ARTWORK (
+        tmdb_show_id, file_path, artwork_type, width, height)
+    VALUES 
+    (p_tmdb_show_id, p_file_path, p_artwork_type, p_width, p_height)
+    ON DUPLICATE KEY UPDATE
+        width = VALUES(width),
+        height = VALUES(height);
 END $$
 
 
