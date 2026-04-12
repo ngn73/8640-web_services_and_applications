@@ -10,7 +10,7 @@
         <h2>Header and menu</h2>
     </header>
 
-    <main style="background-image: url('{{ url_for('static', filename='images/backdrop_test.png') }}');">
+    <main style="  background-image: url('https://image.tmdb.org/t/p/original{{ artwork.backdrop.file_path }}');">
         <section>
             <h1>{{ show.name }}</h1>
             <p>{{ show.overview }}</p>
@@ -23,7 +23,7 @@
         </section>
 
         <aside>
-            <img src="https://image.tmdb.org/t/p/w500{{ show.poster_path }}" alt="{{ show.name }}">
+            <img src="https://image.tmdb.org/t/p/w500{{ artwork.poster.file_path }}" alt="{{ show.name }}">
         </aside>
 
         <div>

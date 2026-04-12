@@ -20,12 +20,16 @@ dao = dao_tmdb(db_client)
 # Import endpoints
 @app.route("/show/<int:tmdb_show_id>")
 def show_details(tmdb_show_id):
+    # Get the show details
     show = dao.get_show_details(tmdb_show_id)
-
+    # Get the show artwork Url's
+    artwork = dao.get_rnd_show_artwork(tmdb_show_id)
+    
     if not show:
         return "TV Show not found", 404
 
-    return render_template("show_details.html", show=show) # pass the show details to the template for rendering
+    # pass the show details (and artwork) to the template for rendering
+    return render_template("show_details.html", show=show, artwork=artwork) 
 
 
 

@@ -439,5 +439,27 @@ BEGIN
 END $$
 
 
+-- ==========================================================
+-- Procedure : GetRndArtwork
+-- Get a random artwork for a specific show and artwork type
+-- ==========================================================
+CREATE PROCEDURE GetRndArtwork(
+    IN p_tmdb_show_id INT,
+    IN p_artwork_type VARCHAR(50)
+)
+BEGIN
+    SELECT
+        file_path,
+        artwork_type,
+        width,
+        height
+    FROM TMDB_SHOW_ARTWORK
+    WHERE tmdb_show_id = p_tmdb_show_id
+        AND artwork_type = p_artwork_type
+    ORDER BY RAND()
+    LIMIT 1;
+END $$
+
+
 -- Reset delimiter back to normal
 DELIMITER ;

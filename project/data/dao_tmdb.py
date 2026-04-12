@@ -458,3 +458,51 @@ class dao_tmdb:
                 conn.rollback()
                 raise
     
+    #Extract all artwork for a show (posters, backdrops, logos)
+    def get_show_artwork(self, tmdb_show_id: int):
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    args = (tmdb_show_id,)
+                    cur.callproc("GetTMDBShowArtwork", args)
+
+                    results = []
+                    for res in cur.stored_results():
+                        rows = res.fetchall()
+                        for row in rows:
+                            results.append(row)
+                    return results
+                conn.commit()
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_show_artwork -- Error retrieving show artwork with TMDb Show ID {tmdb_show_id}")
+                conn.rollback()
+                raise
+
+    def get_rnd_show_artwork(self, tmdb_show_id: int) -> dict:
+        artwork = {
+            "poster": {},
+            "backdrop": {},
+            "logo": {}
+        }
+
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    for artwork_type in ["poster", "backdrop", "logo"]:
+                        args = (tmdb_show_id, artwork_type)
+                        cur.callproc("GetRndArtwork", args)
+
+                        for res in cur.stored_results():
+                            row = res.fetchone()
+                            if row:
+                                artwork[artwork_type] = {
+                                    "file_path": row["file_path"],
+                                    "artwork_type": row["artwork_type"],
+                                    "width": row["width"],
+                                    "height": row["height"]
+                                }
+                return artwork
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_rnd_show_artwork -- Error retrieving random artwork for show ID {tmdb_show_id}")
+                conn.rollback()
+                raise
