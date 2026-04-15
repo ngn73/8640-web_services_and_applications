@@ -44,6 +44,9 @@ class tmdb_mgr:
 
     # Load the TMDb details for the list of shows(delta or full)
     def _load_trakt_data(self, trakt_shows:list):
+
+        #trakt_shows = ['60585', '456', '4546', '93870'] # for testing, comment out in production
+        
         show_idx = 0
         for tmdb_id in trakt_shows:
             show_idx += 1
@@ -155,8 +158,7 @@ class tmdb_mgr:
                 "episode_count": season.get("episode_count"),
                 "poster_path": season.get("poster_path")
             })
-
-        self._extract_TMDB_episode_details(tmdb_id, season.get("season_number"))
+            self._extract_TMDB_episode_details(tmdb_id, season.get("season_number"))
 
         # extract the network details for the show (from same API call)
         for network in show_details.get("networks", []):
@@ -179,13 +181,14 @@ class tmdb_mgr:
             raise
         
         for artwork in artwork_details.get("posters", []):
-            self.show_artwork_rows.append({
-                "tmdb_show_id": tmdb_id,
-                "file_path": artwork.get("file_path"),
-                "artwork_type": "poster",
-                "width": artwork.get("width"),
-                "height": artwork.get("height")
-            })
+            if artwork.get("iso_639_1") in ("en", None): # some shows have non-english images, so check before inserting
+                self.show_artwork_rows.append({
+                    "tmdb_show_id": tmdb_id,
+                    "file_path": artwork.get("file_path"),
+                    "artwork_type": "poster",
+                    "width": artwork.get("width"),
+                    "height": artwork.get("height")
+                })
         for artwork in artwork_details.get("backdrops", []):
             self.show_artwork_rows.append({
                 "tmdb_show_id": tmdb_id,
@@ -194,14 +197,30 @@ class tmdb_mgr:
                 "width": artwork.get("width"),
                 "height": artwork.get("height")
             })
-        for artwork in artwork_details.get("logos", []):
-            self.show_artwork_rows.append({
-                "tmdb_show_id": tmdb_id,
-                "file_path": artwork.get("file_path"),
-                "artwork_type": "logo",
-                "width": artwork.get("width"),
-                "height": artwork.get("height")
-            })
+
+        # for logos, prefer English language if available, 
+        # otherwise take the first logo (even if non-English or no language specified)
+        logos = artwork_details.get("logos", [])
+        english = [l for l in logos if l.get("iso_639_1") == "en"]
+        logo = None
+        if(english):
+            logo = english[0] 
+        else :
+            logo = next(
+                (l for l in logos if l.get("iso_639_1") is None),
+                None
+            )
+
+        if logo:
+            file_path = logo.get("file_path")
+            if file_path:   # important safety check
+                self.show_artwork_rows.append({
+                    "tmdb_show_id": tmdb_id,
+                    "file_path": file_path,
+                    "artwork_type": "logo",
+                    "width": logo.get("width"),
+                    "height": logo.get("height")
+                })
     
     def _extract_TMDB_episode_details(self, tmdb_id: str, season_number: int):
         try:

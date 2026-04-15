@@ -1,0 +1,170 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background: #111;
+    color: #fff;
+    line-height: 1.6;
+}
+
+.season-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.season-header {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 40px;
+    align-items: start;
+    margin-bottom: 50px;
+}
+
+.season-poster {
+    width: 100%;
+    border-radius: 14px;
+    display: block;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+.season-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #bbb;
+    margin-bottom: 10px;
+}
+
+.season-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+}
+
+.season-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    color: #c7c7c7;
+    margin-bottom: 20px;
+}
+
+.season-overview {
+    max-width: 900px;
+    color: #e2e2e2;
+    font-size: 1rem;
+}
+
+.episodes-section {
+    margin-top: 20px;
+}
+
+.section-heading {
+    font-size: 1.6rem;
+    margin-bottom: 24px;
+}
+
+.episodes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.episode-card {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.episode-image-wrap {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #222;
+}
+
+.episode-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.episode-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 0.95rem;
+}
+
+.episode-body {
+    padding: 16px 16px 12px 16px;
+    flex-grow: 1;
+}
+
+.episode-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #fff;
+}
+
+.episode-overview {
+    font-size: 0.92rem;
+    color: #d5d5d5;
+    line-height: 1.5;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.episode-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.05);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.85rem;
+    color: #cfcfcf;
+}
+
+.watch-status,
+.episode-rating {
+    white-space: nowrap;
+}
+
+.episode-rating {
+    font-weight: 600;
+    color: #f5c15d;
+}
+
+@media (max-width: 900px) {
+    .season-page {
+        padding: 24px;
+    }
+
+    .season-header {
+        grid-template-columns: 1fr;
+    }
+
+    .season-poster-column {
+        max-width: 260px;
+    }
+
+    .season-title {
+        font-size: 2rem;
+    }
+}

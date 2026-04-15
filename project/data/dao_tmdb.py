@@ -31,6 +31,60 @@ class dao_tmdb:
                 conn.rollback()
                 raise
 
+    # Get details for all seasons for a show
+    def get_season_details(self, tmdb_id: str) -> list:
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    args = (tmdb_id, -1)  # Use -1 to indicate we want all seasons for the show
+                    cur.callproc("GetSeasonDetailsByTMDBId", args)
+
+                    seasons = []
+                    for res in cur.stored_results():
+                        rows = res.fetchall()
+                        seasons.extend(rows)
+                    return seasons
+                conn.commit()
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_show_seasons -- Error retrieving show seasons with TMDb ID {tmdb_id}")
+                conn.rollback()
+                raise
+
+    # Get details for a specific season of a show (same SP as above)
+    def get_season_details_by_number(self, tmdb_id: str, season_number: int) -> dict:
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    args = (tmdb_id, season_number)
+                    cur.callproc("GetSeasonDetailsByTMDBId", args)
+
+                    for res in cur.stored_results():
+                        row = res.fetchone()
+                        return row if row else {}
+                conn.commit()
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_season_details_by_number -- Error retrieving season details for show ID {tmdb_id}, season number {season_number}")
+                conn.rollback()
+                raise
+
+    def get_episode_details(self, tmdb_id: str, season_number: int) -> list:
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    args = (tmdb_id, season_number, -1)  # Use -1 to indicate we want all episodes for the season
+                    cur.callproc("GetSeasonEpisodeDetailsByTMDBId", args)
+
+                    episodes = []
+                    for res in cur.stored_results():
+                        rows = res.fetchall()
+                        episodes.extend(rows)
+                    return episodes
+                conn.commit()
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_episode_details -- Error retrieving episode details for show ID {tmdb_id}, season number {season_number}")
+                conn.rollback()
+                raise
+
     def  bulk_insert_shows(self, shows_rows: list):
         self.mylogger.logInfoMessage("Starting bulk insert of show details into database...")
         for row in shows_rows:

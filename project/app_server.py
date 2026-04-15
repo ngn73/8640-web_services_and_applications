@@ -24,14 +24,27 @@ def show_details(tmdb_show_id):
     show = dao.get_show_details(tmdb_show_id)
     # Get the show artwork Url's
     artwork = dao.get_rnd_show_artwork(tmdb_show_id)
+    # Get the show seasons
+    seasons = dao.get_season_details(tmdb_show_id)
     
     if not show:
         return "TV Show not found", 404
 
     # pass the show details (and artwork) to the template for rendering
-    return render_template("show_details.html", show=show, artwork=artwork) 
+    return render_template("show_details.html", show=show, artwork=artwork, seasons=seasons) 
 
+@app.route("/show/<int:tmdb_show_id>/season/<int:season_number>")
+def season_details(tmdb_show_id, season_number):
+    show = dao.get_show_details(tmdb_show_id)
+    season = dao.get_season_details_by_number(tmdb_show_id, season_number)
+    episodes = dao.get_episode_details(tmdb_show_id, season_number)
 
+    return render_template(
+        "season_details.html",
+        show=show,
+        season=season,
+        episodes=episodes
+    )
 
 if __name__ == '__main__':
     app.run(debug=True) 

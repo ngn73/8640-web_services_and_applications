@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ show.name }} - Season {{ season.season_number }}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/season_details.css') }}">
+</head>
+<body>
+
+    <main class="season-page">
+
+        <section class="season-header">
+            <div class="season-poster-column">
+                {% if season.poster_path %}
+                    <img
+                        class="season-poster"
+                        src="https://image.tmdb.org/t/p/w500{{ season.poster_path }}"
+                        alt="{{ show.name }} Season {{ season.season_number }} poster"
+                    >
+                {% endif %}
+            </div>
+
+            <div class="season-info-column">
+                <p class="season-label">Season</p>
+                <h1 class="season-title">
+                    {{ show.name }} — Season {{ season.season_number }}
+                </h1>
+
+                <div class="season-meta">
+                    {% if season.air_date %}
+                        <span>{{ season.air_date.year if season.air_date.year else season.air_date }}</span>
+                    {% endif %}
+                    {% if season.episode_count %}
+                        <span>•</span>
+                        <span>{{ season.episode_count }} Episodes</span>
+                    {% endif %}
+                </div>
+
+                <p class="season-overview">
+                    {{ season.overview if season.overview else 'No season overview available.' }}
+                </p>
+            </div>
+        </section>
+
+        <section class="episodes-section">
+            <h2 class="section-heading">Episodes</h2>
+
+            <div class="episodes-grid">
+                {% for episode in episodes %}
+                    <article class="episode-card">
+                        <div class="episode-image-wrap">
+                            {% if episode.still_path %}
+                                <img
+                                    class="episode-image"
+                                    src="https://image.tmdb.org/t/p/w500{{ episode.still_path }}"
+                                    alt="{{ episode.name }}"
+                                >
+                            {% else %}
+                                <div class="episode-image episode-image-placeholder">
+                                    No Image
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="episode-body">
+                            <h3 class="episode-title">
+                                Episode {{ episode.episode_number }} — {{ episode.name }}
+                            </h3>
+
+                            <p class="episode-overview">
+                                {{ episode.overview if episode.overview else 'No episode overview available.' }}
+                            </p>
+                        </div>
+
+                         <div class="trakt-episode-meta">
+                            <div class="watch-status">
+                                Watched: {{ episode.air_date}}
+                            </div>
+
+                            <div class="trakt-episode-rating">
+                                ★ 8/10
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>

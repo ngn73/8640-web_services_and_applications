@@ -175,6 +175,62 @@ BEGIN
     WHERE tmdb_id = p_tmdb_id;
 END $$
 
+
+-- ==========================================================
+-- Procedure : GetSeasonDetailsByTMDBId
+-- Get Season Details for a specific TMDB Id
+-- (use -1 for season_number to get all seasons for the show)
+-- ==========================================================
+CREATE PROCEDURE GetSeasonDetailsByTMDBId(
+    IN p_tmdb_show_id VARCHAR(100)
+    IN p_season_number INT
+)
+BEGIN
+    SELECT 
+        tmdb_season_id,
+        tmdb_show_id,   
+        season_number,
+        name,
+        overview,
+        air_date,
+        episode_count,
+        poster_path
+    FROM TMDB_SEASON
+    WHERE 
+    tmdb_show_id = p_tmdb_show_id
+    AND (p_season_number = -1 OR season_number = p_season_number);
+END $$
+
+-- =================================================================================
+-- Procedure : GetEpisodeDetailsByTMDBId
+-- Get Episode Details for a specific TMDB Id   
+-- (use -1 for episode_number to get all episodes for the season)
+-- =================================================================================
+CREATE PROCEDURE GetSeasonEpisodeDetailsByTMDBId(
+    IN p_tmdb_show_id VARCHAR(100),
+    IN p_season_number INT,
+    IN p_episode_number INT
+)
+BEGIN
+    SELECT 
+        tmdb_episode_id,
+        tmdb_show_id,
+        season_number,
+        episode_number,
+        name,
+        overview,
+        air_date,
+        runtime,
+        vote_average,
+        vote_count,
+        still_path
+    FROM TMDB_EPISODE
+    WHERE tmdb_show_id = p_tmdb_show_id
+    AND season_number = p_season_number
+    AND (p_episode_number = -1 OR episode_number = p_episode_number);
+END $$
+
+
 -- =========================================
 -- Procedure : InsertTMDBShow
 -- INSERT TMDB Show Details
