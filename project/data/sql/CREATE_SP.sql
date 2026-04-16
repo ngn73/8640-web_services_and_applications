@@ -153,6 +153,46 @@ BEGIN
     ORDER BY tmdb_id;
 END $$
 
+-- =====================================================================================
+-- Procedure : GetAllShows
+-- Get details for all shows in the database,
+-- Show details, a (single) Poster for each show, and the latest watched season/episode
+-- =====================================================================================
+CREATE PROCEDURE GetAllShows()
+BEGIN
+SELECT
+    TMDB.tmdb_id AS tmdb_id,
+    TMDB.name AS name,
+    TMDB.overview AS overview,
+    TMDB.first_air_date AS first_air_date,
+    TMDB.status AS status,
+    TMDB.vote_average AS vote_average,
+    TMDB.vote_count AS vote_count,
+    TMDB.number_of_seasons AS number_of_seasons,
+    TMDB.number_of_episodes AS number_of_episodes,
+    TK.latest_season AS latest_season,
+    TK.latest_episode AS latest_episode,
+    (
+        SELECT A.file_path
+        FROM TMDB_SHOW_ARTWORK A
+        WHERE A.artwork_type = 'poster'
+        AND A.tmdb_show_id = TMDB.tmdb_id
+        ORDER BY A.width DESC
+        LIMIT 1
+    ) AS poster_path
+FROM TMDB_SHOW TMDB
+LEFT JOIN (
+    SELECT
+        tmdb_id,
+        FLOOR(MAX(season * 10000 + episode) / 10000) AS latest_season,
+        MOD(MAX(season * 10000 + episode), 10000) AS latest_episode
+    FROM TRAKT_STATUS
+    GROUP BY tmdb_id
+) TK
+    ON TMDB.tmdb_id = TK.tmdb_id;
+END $$
+
+
 -- ==========================================
 -- Procedure : GetShowDetailsByTMDBId
 -- Get Show Details for a specific TMDB Id
@@ -223,8 +263,12 @@ BEGIN
         runtime,
         vote_average,
         vote_count,
-        still_path
-    FROM TMDB_EPISODE
+        still_path,
+        last_watched_at,
+        rating
+    FROM TMDB_EPISODE E
+    LEFT JOIN TRAKT_STATUS T
+    ON E.tmdb_show_id = T.tmdb_id AND E.season_number = T.season AND E.episode_number = T.episode
     WHERE tmdb_show_id = p_tmdb_show_id
     AND season_number = p_season_number
     AND (p_episode_number = -1 OR episode_number = p_episode_number);
@@ -482,16 +526,18 @@ CREATE PROCEDURE InsertTMDBShowArtwork(
     IN p_file_path VARCHAR(255),
     IN p_artwork_type VARCHAR(50),
     IN p_width INT,
-    IN p_height INT
+    IN p_height INT,
+    IN p_vote_average DECIMAL(3,1)
 )
 BEGIN
     INSERT INTO TMDB_SHOW_ARTWORK (
-        tmdb_show_id, file_path, artwork_type, width, height)
+        tmdb_show_id, file_path, artwork_type, width, height, vote_average)
     VALUES 
-    (p_tmdb_show_id, p_file_path, p_artwork_type, p_width, p_height)
+    (p_tmdb_show_id, p_file_path, p_artwork_type, p_width, p_height, p_vote_average)
     ON DUPLICATE KEY UPDATE
         width = VALUES(width),
-        height = VALUES(height);
+        height = VALUES(height),
+        vote_average = VALUES(vote_average);
 END $$
 
 

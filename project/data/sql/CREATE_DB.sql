@@ -165,6 +165,7 @@ CREATE TABLE TMDB_SHOW_ARTWORK (
     artwork_type VARCHAR(50) NOT NULL,
     width INT NULL,
     height INT NULL,
+    vote_average DECIMAL(3,1) NULL,
 
     UNIQUE KEY unique_artwork (tmdb_show_id, artwork_type, file_path(100)),
 

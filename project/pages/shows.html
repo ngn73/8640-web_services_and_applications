@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shows</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/shows.css') }}">
+</head>
+<body>
+    <main class="shows-page">
+        <header class="shows-header">
+            <h1>Shows</h1>
+            <p class="shows-subtitle">Browse your TV library</p>
+        </header>
+
+        <section class="shows-grid">
+            {% for show in shows %}
+                <a class="show-card" href="{{ url_for('show_details', tmdb_show_id=show.tmdb_id) }}">
+                    <div class="show-poster-wrap">
+                        {% if show.poster_path %}
+                            <img
+                                class="show-poster"
+                                src="https://image.tmdb.org/t/p/w500{{ show.poster_path }}"
+                                alt="{{ show.name }}"
+                            >
+                        {% else %}
+                            <div class="show-poster show-poster-placeholder">
+                                No Image
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="show-card-body">
+                        <h2 class="show-title">{{ show.name }}</h2>
+
+                        <div class="show-meta">
+                            <span>
+                                {{ show.first_air_date.year if show.first_air_date else 'N/A' }}
+                            </span>
+
+                            {% if show.vote_average %}
+                                <span>•</span>
+                                <span>{{ show.vote_average }}/10</span>
+                            {% endif %}
+                        </div>
+                        <!-- TRAKT SECTION -->
+                        <div class="show-trakt">
+
+                            {% if show.latest_season and show.latest_episode %}
+                                <div class="show-progress">
+                                    {% if (show.number_of_seasons == show.latest_season) and (show.latest_episode == show.number_of_episodes) %}
+                                        <span>Progress: Completed</span>
+                                    {% else %}
+                                        <span>Progress: S{{ show.latest_season }}E{{ show.latest_episode }}</span> 
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>

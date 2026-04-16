@@ -15,6 +15,25 @@ class dao_tmdb:
         self.mylogger = logger.app_logger(__name__)
         self.db = mydb
 
+    # Get all shows in the database (for home page)
+    def get_all_shows(self) -> list:
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    cur.callproc("GetAllShows")
+
+                    shows = []
+                    for res in cur.stored_results():
+                        rows = res.fetchall()
+                        shows.extend(rows)
+                    return shows
+                conn.commit()
+            except:
+                self.mylogger.logErrorMessage("dao_tmdb.get_all_shows -- Error retrieving all shows")
+                conn.rollback()
+                raise
+    
+    # Get details for a show by TMDb ID (for show details page)
     def get_show_details(self, tmdb_id: str) -> dict:
         with self.db.get_connection() as conn:
             try:
@@ -67,6 +86,7 @@ class dao_tmdb:
                 conn.rollback()
                 raise
 
+    # Get details for all episodes for a specific season of a show
     def get_episode_details(self, tmdb_id: str, season_number: int) -> list:
         with self.db.get_connection() as conn:
             try:
@@ -286,7 +306,7 @@ class dao_tmdb:
             try:
                 with self.db.get_cursor(conn) as cur:
                     for artwork in rows:
-                        args = (artwork["tmdb_show_id"], artwork["file_path"], artwork["artwork_type"], artwork["width"], artwork["height"])
+                        args = (artwork["tmdb_show_id"], artwork["file_path"], artwork["artwork_type"], artwork["width"], artwork["height"], artwork["vote_avg"])
                         cur.callproc("InsertTMDBShowArtwork", args)
                 conn.commit()
             except Exception as e:
@@ -532,6 +552,7 @@ class dao_tmdb:
                 conn.rollback()
                 raise
 
+    #Extract a random piece of artwork for each type (poster, backdrop, logo) for a show
     def get_rnd_show_artwork(self, tmdb_show_id: int) -> dict:
         artwork = {
             "poster": {},

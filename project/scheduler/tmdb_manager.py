@@ -45,8 +45,9 @@ class tmdb_mgr:
     # Load the TMDb details for the list of shows(delta or full)
     def _load_trakt_data(self, trakt_shows:list):
 
-        #trakt_shows = ['60585', '456', '4546', '93870'] # for testing, comment out in production
-        
+        #trakt_shows = ['60585', '456', '4546', '93870', '83867'] # for short test runs , comment out in production
+        trakt_shows = ['60585'] 
+
         show_idx = 0
         for tmdb_id in trakt_shows:
             show_idx += 1
@@ -181,21 +182,24 @@ class tmdb_mgr:
             raise
         
         for artwork in artwork_details.get("posters", []):
-            if artwork.get("iso_639_1") in ("en", None): # some shows have non-english images, so check before inserting
+            if artwork.get("iso_639_1") == "en": # some shows have non-english images (or blank), so check before inserting
                 self.show_artwork_rows.append({
                     "tmdb_show_id": tmdb_id,
                     "file_path": artwork.get("file_path"),
                     "artwork_type": "poster",
                     "width": artwork.get("width"),
-                    "height": artwork.get("height")
+                    "height": artwork.get("height"),
+                    "vote_avg": artwork.get("vote_average")
                 })
         for artwork in artwork_details.get("backdrops", []):
-            self.show_artwork_rows.append({
+            if artwork.get("iso_639_1") == None: # some backdrops have logo images (where iso_639_1 is not None), so check before inserting
+                self.show_artwork_rows.append({
                 "tmdb_show_id": tmdb_id,
                 "file_path": artwork.get("file_path"),
                 "artwork_type": "backdrop",
                 "width": artwork.get("width"),
-                "height": artwork.get("height")
+                "height": artwork.get("height"),
+                "vote_avg": artwork.get("vote_average")
             })
 
         # for logos, prefer English language if available, 
@@ -219,7 +223,8 @@ class tmdb_mgr:
                     "file_path": file_path,
                     "artwork_type": "logo",
                     "width": logo.get("width"),
-                    "height": logo.get("height")
+                    "height": logo.get("height"),
+                    "vote_avg": logo.get("vote_average")
                 })
     
     def _extract_TMDB_episode_details(self, tmdb_id: str, season_number: int):

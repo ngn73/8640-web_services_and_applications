@@ -73,16 +73,21 @@
                             <p class="episode-overview">
                                 {{ episode.overview if episode.overview else 'No episode overview available.' }}
                             </p>
+
+                            <p class="episode-overview">
+                                Aired : {{ episode.air_date if episode.air_date else 'No air date available.' }}
+                            </p>
+                            
                         </div>
 
                          <div class="trakt-episode-meta">
-                            <div class="watch-status">
-                                Watched: {{ episode.air_date}}
-                            </div>
-
-                            <div class="trakt-episode-rating">
-                                ★ 8/10
-                            </div>
+                            <p class="watch-status">
+                                Watched: {{ episode.last_watched_at.strftime('%Y-%m-%d') if episode.last_watched_at else 'No' }}
+                            </p>
+                            
+                            <p class="trakt-episode-rating">
+                                ★ {{ episode.rating if episode.rating else '--' }}/10
+                            </p>
                         </div>
                     </article>
                 {% endfor %}

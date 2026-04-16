@@ -17,7 +17,13 @@ app = Flask(__name__, template_folder="pages")
 db_client = get_db_mgr()
 dao = dao_tmdb(db_client)
 
-# Import endpoints
+# endpoint for the home page
+@app.route("/shows")
+def shows():
+    shows = dao.get_all_shows()
+    return render_template("shows.html", shows=shows)
+
+# endpoint for the show details page
 @app.route("/show/<int:tmdb_show_id>")
 def show_details(tmdb_show_id):
     # Get the show details
@@ -33,6 +39,7 @@ def show_details(tmdb_show_id):
     # pass the show details (and artwork) to the template for rendering
     return render_template("show_details.html", show=show, artwork=artwork, seasons=seasons) 
 
+# endpoint for the season details page
 @app.route("/show/<int:tmdb_show_id>/season/<int:season_number>")
 def season_details(tmdb_show_id, season_number):
     show = dao.get_show_details(tmdb_show_id)
