@@ -6,7 +6,7 @@ tmdb = tmdb_manager.tmdb_mgr()
 trakt = trakt_manager.trakt_mgr()
 
 if __name__ == "__main__":
-    mode = "tmdb_full"
+    mode = "trakt"  #default to full tmdb update if no argument is provided
     if len(sys.argv) > 1:
         mode = sys.argv[1]
 
@@ -20,4 +20,4 @@ if __name__ == "__main__":
         trakt.extract_and_save_trakt_data()
 
     else:
-        trakt.extract_and_save_trakt_data()
+        print(f"Invalid mode specified: {mode}. Valid modes are 'tmdb_delta', 'tmdb_full', and 'trakt'.")

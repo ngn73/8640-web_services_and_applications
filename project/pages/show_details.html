@@ -6,6 +6,11 @@
     <title>{{ show.name }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/show_details.css') }}">
 </head>
+<header class="page-header">
+    <a href="{{ url_for('shows') }}" class="home-link">
+        ← Home
+    </a>
+</header>
 <body>
     
     <section class="hero" style="background-image: url('https://image.tmdb.org/t/p/original{{ artwork.backdrop.file_path }}');">

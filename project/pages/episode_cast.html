@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ show.name }} - S{{ season.season_number }}E{{ episode.episode_number }} Cast</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/episode_cast.css') }}">
+</head>
+<body>
+    <main class="episode-cast-page">
+
+        <header class="page-top">
+            <div class="nav-links">
+                <a href="{{ url_for('shows') }}" class="nav-link">Home</a>
+                <a href="{{ url_for('season_details', tmdb_show_id=show.tmdb_id, season_number=season.season_number) }}" class="nav-link">
+                    Back to Season
+                </a>
+            </div>
+
+            <div class="page-heading">
+                <p class="episode-label">Episode Cast</p>
+                <h1>
+                    {{ show.name }} — S{{ season.season_number }}E{{ episode.episode_number }}
+                </h1>
+                <h2>{{ episode.name }}</h2>
+            </div>
+        </header>
+
+        <section class="episode-summary">
+            {% if episode.still_path %}
+                <div class="episode-still-wrap">
+                    <img
+                        class="episode-still"
+                        src="https://image.tmdb.org/t/p/w780{{ episode.still_path }}"
+                        alt="{{ episode.name }}"
+                    >
+                </div>
+            {% endif %}
+
+            <div class="episode-summary-text">
+                <p>
+                    {{ episode.overview if episode.overview else 'No episode overview available.' }}
+                </p>
+            </div>
+        </section>
+
+        <section class="cast-section">
+            <h3 class="section-title">Cast</h3>
+
+            <div class="cast-grid">
+                {% for person in cast %}
+                    <article class="cast-card">
+                        <div class="cast-image-wrap">
+                            {% if person.profile_path %}
+                                <img
+                                    class="cast-image"
+                                    src="https://image.tmdb.org/t/p/w300{{ person.profile_path }}"
+                                    alt="{{ person.person_name }}"
+                                >
+                            {% else %}
+                                <div class="cast-image cast-image-placeholder">No Image</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="cast-body">
+                            <h4 class="cast-name">{{ person.person_name }}</h4>
+                            <p class="cast-character">
+                                {{ person.character_name if person.character_name else 'Unknown Character' }}
+                            </p>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+
+    </main>
+</body>
+</html>

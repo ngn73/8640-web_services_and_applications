@@ -29,7 +29,7 @@ def show_details(tmdb_show_id):
     # Get the show details
     show = dao.get_show_details(tmdb_show_id)
     # Get the show artwork Url's
-    artwork = dao.get_rnd_show_artwork(tmdb_show_id)
+    artwork = dao.get_show_artwork(tmdb_show_id, rated=False)
     # Get the show seasons
     seasons = dao.get_season_details(tmdb_show_id)
     
@@ -45,12 +45,33 @@ def season_details(tmdb_show_id, season_number):
     show = dao.get_show_details(tmdb_show_id)
     season = dao.get_season_details_by_number(tmdb_show_id, season_number)
     episodes = dao.get_episode_details(tmdb_show_id, season_number)
+    cast_crew = dao.get_season_cast_crew(tmdb_show_id, season_number)
 
     return render_template(
         "season_details.html",
         show=show,
         season=season,
         episodes=episodes
+    )
+
+@app.route("/show/<int:tmdb_show_id>/season/<int:season_number>/episode/<int:episode_number>/crew")
+def episode_crew(tmdb_show_id, season_number, episode_number):
+    pass
+
+
+@app.route("/show/<int:tmdb_show_id>/season/<int:season_number>/episode/<int:episode_number>/cast")
+def episode_cast(tmdb_show_id, season_number, episode_number):
+    show = dao.get_show_details(tmdb_show_id)
+    season = dao.get_season_details_by_number(tmdb_show_id, season_number)
+    episode = dao.get_episode_details_by_number(tmdb_show_id, season_number, episode_number)
+    cast = dao.get_episode_cast(tmdb_show_id, season_number, episode_number)
+
+    return render_template(
+        "episode_cast.html",
+        show=show,
+        season=season,
+        episode=episode,
+        cast=cast
     )
 
 if __name__ == '__main__':

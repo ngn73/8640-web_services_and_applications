@@ -84,7 +84,6 @@ class api_trakt:
 
         # Persist latest tokens immediately
         self.dao_trakt.update_trakt_auth(
-            auth_id=self.auth_id,
             access_token=self.access_token,
             refresh_token=self.refresh_token,
             token_type=self.token_type,

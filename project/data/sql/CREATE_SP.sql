@@ -1,8 +1,8 @@
 
 USE media_analytics_db;
 
-/*
-Use this to Drop and Recreate the stored procedures.
+
+-- Initially Drop all the stored procedures.
 DROP PROCEDURE IF EXISTS GetTraktAuth;
 DROP PROCEDURE IF EXISTS UpdateTraktAuth;
 DROP PROCEDURE IF EXISTS InsertTraktStatus;
@@ -10,8 +10,13 @@ DROP PROCEDURE IF EXISTS UpdateTraktStatus;
 DROP PROCEDURE IF EXISTS GetTraktStatus;
 DROP PROCEDURE IF EXISTS ClearTraktStatus;
 DROP PROCEDURE IF EXISTS GetDistinctTMDBIds;
-
+DROP PROCEDURE IF EXISTS GetAllShows;
 DROP PROCEDURE IF EXISTS GetShowDetailsByTMDBId;
+DROP PROCEDURE IF EXISTS GetSeasonDetailsByTMDBId;
+DROP PROCEDURE IF EXISTS GetSeasonEpisodeDetailsByTMDBId;
+DROP PROCEDURE IF EXISTS GetSeasonCastCrewByTMDBId;
+DROP PROCEDURE IF EXISTS GetSeasonEpisodeDetailsByTMDBId;
+DROP PROCEDURE IF EXISTS GetEpisodeCastByTMDBId;
 DROP PROCEDURE IF EXISTS InsertTMDBShow;
 DROP PROCEDURE IF EXISTS InsertTMDBSeason;
 DROP PROCEDURE IF EXISTS InsertTMDBEpisode;
@@ -22,7 +27,10 @@ DROP PROCEDURE IF EXISTS ClearTMDBTables;
 DROP PROCEDURE IF EXISTS InsertTMDBShowNetwork;
 DROP PROCEDURE IF EXISTS InsertTMDBNetwork;
 DROP PROCEDURE IF EXISTS Get_TMDB_Trakt_Delta;
-*/
+DROP PROCEDURE IF EXISTS InsertTMDBShowArtwork;
+DROP PROCEDURE IF EXISTS GetRndArtwork;
+DROP PROCEDURE IF EXISTS GetRatedArtwork;
+
 
 -- Change delimiter so MySQL doesn't stop at first ;
 DELIMITER $$
@@ -177,7 +185,7 @@ SELECT
         FROM TMDB_SHOW_ARTWORK A
         WHERE A.artwork_type = 'poster'
         AND A.tmdb_show_id = TMDB.tmdb_id
-        ORDER BY A.width DESC
+        ORDER BY A.vote_average DESC
         LIMIT 1
     ) AS poster_path
 FROM TMDB_SHOW TMDB
@@ -222,7 +230,7 @@ END $$
 -- (use -1 for season_number to get all seasons for the show)
 -- ==========================================================
 CREATE PROCEDURE GetSeasonDetailsByTMDBId(
-    IN p_tmdb_show_id VARCHAR(100)
+    IN p_tmdb_show_id VARCHAR(100),
     IN p_season_number INT
 )
 BEGIN
@@ -272,6 +280,55 @@ BEGIN
     WHERE tmdb_show_id = p_tmdb_show_id
     AND season_number = p_season_number
     AND (p_episode_number = -1 OR episode_number = p_episode_number);
+END $$
+
+-- =========================================
+-- Procedure : GetSeasonCastCrewByTMDBId
+-- Get Season Cast and Crew Details for a specific TMDB Id
+-- =========================================
+CREATE PROCEDURE GetSeasonCastCrewByTMDBId(
+    IN p_tmdb_show_id VARCHAR(100),
+    IN p_season_number INT
+)
+BEGIN
+    SELECT 
+        person_id,
+        name,
+        character_name,
+        profile_path
+    FROM TMDB_SEASON_CAST_CREW
+    WHERE tmdb_show_id = p_tmdb_show_id
+    AND season_number = p_season_number;
+END $$
+
+-- ================================================
+-- Procedure : GetEpisodeCastByTMDBId
+-- Get Episode Cast Details for a specific TMDB Id
+-- ================================================    
+CREATE PROCEDURE GetEpisodeCastByTMDBId(
+    IN p_tmdb_show_id VARCHAR(100),
+    IN p_season_number INT,
+    IN p_episode_number INT
+)   
+BEGIN
+    SELECT 
+        P.tmdb_person_id,
+        P.person_name,
+        P.biography,
+        P.birthday,
+        P.place_of_birth,
+        C.character_name,
+        C.cast_order,
+        P.profile_path
+    FROM TMDB_EPISODE_CAST C
+    INNER JOIN TMDB_PERSON P 
+        ON C.tmdb_person_id = P.tmdb_person_id
+    INNER JOIN TMDB_EPISODE E
+        ON C.tmdb_episode_id = E.tmdb_episode_id
+    WHERE E.tmdb_show_id = p_tmdb_show_id
+    AND E.season_number = p_season_number
+    AND E.episode_number = p_episode_number
+    ORDER BY C.cast_order;
 END $$
 
 
@@ -559,6 +616,27 @@ BEGIN
     WHERE tmdb_show_id = p_tmdb_show_id
         AND artwork_type = p_artwork_type
     ORDER BY RAND()
+    LIMIT 1;
+END $$
+
+-- ==========================================================
+-- Procedure : GetRatedArtwork
+-- Get most rated artwork for a specific show and artwork type
+-- ==========================================================
+CREATE PROCEDURE GetRatedArtwork(
+    IN p_tmdb_show_id INT,
+    IN p_artwork_type VARCHAR(50)
+)
+BEGIN
+    SELECT
+        file_path,
+        artwork_type,
+        width,
+        height
+    FROM TMDB_SHOW_ARTWORK
+    WHERE tmdb_show_id = p_tmdb_show_id
+        AND artwork_type = p_artwork_type
+    ORDER BY vote_average DESC
     LIMIT 1;
 END $$
 

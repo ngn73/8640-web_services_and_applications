@@ -38,6 +38,7 @@ body {
     z-index: 2;
     padding: 40px 60px;
     max-width: 900px;
+    top: 120px;
 }
 
 .hero-content h1 {
@@ -179,9 +180,10 @@ body {
 .season-link {
     font-family: 'Montserrat', sans-serif;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 1.5rem;
     letter-spacing: 1px;
     text-transform: uppercase;
+    text-align: center;
 
     display: block;
     padding: 10px 12px;
@@ -198,6 +200,33 @@ body {
 .season-link.active {
     background: #e50914;   /* Netflix red */
     color: #fff;
+}
+
+.page-header {
+    position: absolute;
+    top: 20px;
+    left: 30px;
+    z-index: 10;
+}
+
+.home-link {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 2rem;
+    color: #f8fc03;
+    text-decoration: none;
+
+    background: rgba(0,0,0,0.6);
+    padding: 8px 14px;
+    border-radius: 999px;
+
+    backdrop-filter: blur(6px);
+
+    transition: all 0.2s ease;
+}
+
+.home-link:hover {
+    background: rgba(0,0,0,0.85);
+    transform: translateX(-3px);
 }
 
 @keyframes fadeIn {

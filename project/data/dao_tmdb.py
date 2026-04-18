@@ -105,6 +105,63 @@ class dao_tmdb:
                 conn.rollback()
                 raise
 
+    def get_season_cast_crew(self, tmdb_id: str, season_number: int) -> dict:
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    args = (tmdb_id, season_number)
+                    cur.callproc("GetSeasonCastCrewByTMDBId", args)
+
+                    cast = []
+                    crew = []
+                    for res in cur.stored_results():
+                        rows = res.fetchall()
+                        for row in rows:
+                            if row['cast_or_crew'] == 'cast':
+                                cast.append(row)
+                            elif row['cast_or_crew'] == 'crew':
+                                crew.append(row)
+                    return {"cast": cast, "crew": crew}
+                conn.commit()
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_season_cast_crew -- Error retrieving cast and crew details for show ID {tmdb_id}, season number {season_number}")
+                conn.rollback()
+                raise
+    
+    def get_episode_details_by_number(self, tmdb_id: str, season_number: int, episode_number: int) -> dict:
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    args = (tmdb_id, season_number, episode_number)
+                    cur.callproc("GetSeasonEpisodeDetailsByTMDBId", args)
+
+                    for res in cur.stored_results():
+                        row = res.fetchone()
+                        return row if row else {}
+                conn.commit()
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_episode_details_by_number -- Error retrieving episode details for show ID {tmdb_id}, season number {season_number}, episode number {episode_number}")
+                conn.rollback()
+                raise
+
+    def get_episode_cast(self, tmdb_id: str, season_number: int, episode_number: int) -> list:
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    args = (tmdb_id, season_number, episode_number)
+                    cur.callproc("GetEpisodeCastByTMDBId", args)
+
+                    cast = []
+                    for res in cur.stored_results():
+                        rows = res.fetchall()
+                        cast.extend(rows)
+                return cast
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_episode_cast -- Error retrieving episode cast details for show ID {tmdb_id}, season number {season_number}, episode number {episode_number}")
+                conn.rollback()
+                raise
+            
+
     def  bulk_insert_shows(self, shows_rows: list):
         self.mylogger.logInfoMessage("Starting bulk insert of show details into database...")
         for row in shows_rows:
@@ -552,8 +609,8 @@ class dao_tmdb:
                 conn.rollback()
                 raise
 
-    #Extract a random piece of artwork for each type (poster, backdrop, logo) for a show
-    def get_rnd_show_artwork(self, tmdb_show_id: int) -> dict:
+    #Extract a rated (or random) piece of artwork for each type (poster, backdrop, logo) for a show
+    def get_show_artwork(self, tmdb_show_id: int, rated: bool) -> dict:
         artwork = {
             "poster": {},
             "backdrop": {},
@@ -565,7 +622,10 @@ class dao_tmdb:
                 with self.db.get_cursor(conn, dictionary=True) as cur:
                     for artwork_type in ["poster", "backdrop", "logo"]:
                         args = (tmdb_show_id, artwork_type)
-                        cur.callproc("GetRndArtwork", args)
+                        if rated:
+                            cur.callproc("GetRatedArtwork", args)   #SP returns the highest rated artwork
+                        else:
+                            cur.callproc("GetRndArtwork", args)  # SP returns a random piece of artwork
 
                         for res in cur.stored_results():
                             row = res.fetchone()

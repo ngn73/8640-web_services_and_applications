@@ -46,7 +46,7 @@ class tmdb_mgr:
     def _load_trakt_data(self, trakt_shows:list):
 
         #trakt_shows = ['60585', '456', '4546', '93870', '83867'] # for short test runs , comment out in production
-        trakt_shows = ['60585'] 
+        #trakt_shows = ['60585'] 
 
         show_idx = 0
         for tmdb_id in trakt_shows:
