@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ person.person_name }}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/person_detail.css') }}">
+</head>
+<body>
+    <main class="person-page">
+        
+        <header class="page-top">
+            <div class="nav-links">
+                <a href="{{ url_for('shows') }}" class="nav-link">Home</a>
+                <a
+                    href="{{ url_for('episode_cast',
+                        tmdb_show_id=source.tmdb_show_id,
+                        season_number=source.season_number,
+                        episode_number=source.episode_number) }}"
+                    class="nav-link"
+                >
+                    Back to Episode Cast
+                </a>
+            </div>
+        </header>
+
+        <section class="person-header">
+            <div class="person-image-column">
+                {% if person.profile_path %}
+                    <img
+                        class="person-image"
+                        src="https://image.tmdb.org/t/p/w500{{ person.profile_path }}"
+                        alt="{{ person.person_name }}"
+                    >
+                {% else %}
+                    <div class="person-image person-image-placeholder">
+                        No Image
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="person-info-column">
+                <p class="person-label">Person</p>
+                <h1 class="person-name">{{ person.person_name }}</h1>
+
+                <div class="person-meta">
+                    <div class="meta-item">
+                        <span class="meta-title">Birthday</span>
+                        <span class="meta-value">
+                            {{ person.birthday.strftime('%Y-%m-%d') if person.birthday else 'Unknown' }}
+                        </span>
+                    </div>
+
+                    <div class="meta-item">
+                        <span class="meta-title">Place of Birth</span>
+                        <span class="meta-value">
+                            {{ person.place_of_birth if person.place_of_birth else 'Unknown' }}
+                        </span>
+                    </div>
+
+                    {% if person.character_name %}
+                        <div class="meta-item">
+                            <span class="meta-title">Character</span>
+                            <span class="meta-value">{{ person.character_name }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <section class="biography-section">
+            <h2 class="section-title">Biography</h2>
+
+            <div class="biography-box">
+                <p>
+                    {{ person.biography if person.biography else 'No biography available.' }}
+                </p>
+            </div>
+        </section>
+
+        {% if related_roles %}
+        <section class="related-roles-section">
+            <h2 class="section-title">Related Roles</h2>
+
+            <div class="roles-list">
+                {% for role in related_roles %}
+                    <div class="role-item">
+                        <div class="role-main">
+                            <div class="role-show">{{ role.show_name }}</div>
+                            <div class="role-character">{{ role.character_name }}</div>
+                        </div>
+
+                        <div class="role-meta">
+                            <a
+                                href="{{ url_for('episode_cast',
+                                    tmdb_show_id=role.tmdb_show_id,
+                                    season_number=role.season_number,
+                                    episode_number=role.episode_number) }}"
+                                class="nav-link"
+                            >
+                                Season {{ role.season_number }}, Episode {{ role.episode_number }}
+                            </a>
+                            
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+    </main>
+</body>
+</html>

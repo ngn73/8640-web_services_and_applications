@@ -69,6 +69,21 @@
                             <p class="cast-character">
                                 {{ person.character_name if person.character_name else 'Unknown Character' }}
                             </p>
+
+                            <p class="cast-birthday">
+                                <strong>Born:</strong> 
+                                {{ person.birthday.strftime('%Y-%m-%d') if person.birthday else 'Unknown' }}
+                            </p>
+                            <p class="cast-birthday">
+                                <strong>Place:</strong>
+                                {{ person.place_of_birth if person.place_of_birth else 'Unknown' }}
+                            </p>
+                            <a
+                                class="cast-more-link"
+                                href="{{ url_for('person_detail', tmdb_person_id=person.tmdb_person_id, tmdb_show_id=episode.tmdb_show_id, season_number=episode.season_number, episode_number=episode.episode_number) }}"
+                            >
+                                More Info
+                            </a>
                         </div>
                     </article>
                 {% endfor %}

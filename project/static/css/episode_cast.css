@@ -113,7 +113,7 @@ body {
 }
 
 .cast-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-10px);
     box-shadow: 0 12px 28px rgba(0,0,0,0.34);
 }
 
@@ -151,6 +151,28 @@ body {
 .cast-character {
     color: #cfcfcf;
     font-size: 0.9rem;
+}
+
+.cast-birthday {
+    font-size: 0.85rem;
+    color: #bfbfbf;
+    margin-top: 8px;
+}
+
+.cast-more-link {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.cast-more-link:hover {
+    background: rgba(255,255,255,0.16);
 }
 
 @media (max-width: 900px) {

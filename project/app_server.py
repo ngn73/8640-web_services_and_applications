@@ -45,7 +45,6 @@ def season_details(tmdb_show_id, season_number):
     show = dao.get_show_details(tmdb_show_id)
     season = dao.get_season_details_by_number(tmdb_show_id, season_number)
     episodes = dao.get_episode_details(tmdb_show_id, season_number)
-    cast_crew = dao.get_season_cast_crew(tmdb_show_id, season_number)
 
     return render_template(
         "season_details.html",
@@ -57,6 +56,23 @@ def season_details(tmdb_show_id, season_number):
 @app.route("/show/<int:tmdb_show_id>/season/<int:season_number>/episode/<int:episode_number>/crew")
 def episode_crew(tmdb_show_id, season_number, episode_number):
     pass
+
+@app.route("/person/<int:tmdb_person_id>/show/<int:tmdb_show_id>/season/<int:season_number>/episode/<int:episode_number>")
+def person_detail(tmdb_person_id, tmdb_show_id, season_number, episode_number):
+    person = dao.get_person_details(tmdb_person_id)
+    related_roles = dao.get_person_related_roles(tmdb_person_id)
+    source = {  # Needed to return the episode page
+        "tmdb_show_id": tmdb_show_id,
+        "season_number": season_number,
+        "episode_number": episode_number
+    }
+
+    return render_template(
+        "person_detail.html",
+        person=person,
+        related_roles=related_roles,
+        source=source
+    )
 
 
 @app.route("/show/<int:tmdb_show_id>/season/<int:season_number>/episode/<int:episode_number>/cast")

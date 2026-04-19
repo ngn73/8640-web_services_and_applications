@@ -104,29 +104,6 @@ class dao_tmdb:
                 self.mylogger.logErrorMessage(f"dao_tmdb.get_episode_details -- Error retrieving episode details for show ID {tmdb_id}, season number {season_number}")
                 conn.rollback()
                 raise
-
-    def get_season_cast_crew(self, tmdb_id: str, season_number: int) -> dict:
-        with self.db.get_connection() as conn:
-            try:
-                with self.db.get_cursor(conn, dictionary=True) as cur:
-                    args = (tmdb_id, season_number)
-                    cur.callproc("GetSeasonCastCrewByTMDBId", args)
-
-                    cast = []
-                    crew = []
-                    for res in cur.stored_results():
-                        rows = res.fetchall()
-                        for row in rows:
-                            if row['cast_or_crew'] == 'cast':
-                                cast.append(row)
-                            elif row['cast_or_crew'] == 'crew':
-                                crew.append(row)
-                    return {"cast": cast, "crew": crew}
-                conn.commit()
-            except:
-                self.mylogger.logErrorMessage(f"dao_tmdb.get_season_cast_crew -- Error retrieving cast and crew details for show ID {tmdb_id}, season number {season_number}")
-                conn.rollback()
-                raise
     
     def get_episode_details_by_number(self, tmdb_id: str, season_number: int, episode_number: int) -> dict:
         with self.db.get_connection() as conn:
@@ -161,6 +138,40 @@ class dao_tmdb:
                 conn.rollback()
                 raise
             
+    
+    def get_person_details(self, tmdb_person_id: int) -> dict:
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    args = (tmdb_person_id,)
+                    cur.callproc("GetPersonDetails", args)
+
+                    for res in cur.stored_results():
+                        row = res.fetchone()
+                        return row if row else {}
+                conn.commit()
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_person_details -- Error retrieving person details for TMDb Person ID {tmdb_person_id}")
+                conn.rollback()
+                raise   
+
+    
+    def get_person_related_roles(self, tmdb_person_id: int) -> list:
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    args = (tmdb_person_id,)
+                    cur.callproc("GetPersonRelatedRoles", args)
+
+                    related_roles = []
+                    for res in cur.stored_results():
+                        rows = res.fetchall()
+                        related_roles.extend(rows)
+                return related_roles
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_person_related_roles -- Error retrieving person related roles for TMDb Person ID {tmdb_person_id}")
+                conn.rollback()
+                raise
 
     def  bulk_insert_shows(self, shows_rows: list):
         self.mylogger.logInfoMessage("Starting bulk insert of show details into database...")

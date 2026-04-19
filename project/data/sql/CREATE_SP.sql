@@ -17,6 +17,9 @@ DROP PROCEDURE IF EXISTS GetSeasonEpisodeDetailsByTMDBId;
 DROP PROCEDURE IF EXISTS GetSeasonCastCrewByTMDBId;
 DROP PROCEDURE IF EXISTS GetSeasonEpisodeDetailsByTMDBId;
 DROP PROCEDURE IF EXISTS GetEpisodeCastByTMDBId;
+drop PROCEDURE IF EXISTS GetEpisodeCrewByTMDBId;
+DROP PROCEDURE IF EXISTS GetPersonDetails;
+DROP PROCEDURE IF EXISTS GetPersonRelatedRoles;
 DROP PROCEDURE IF EXISTS InsertTMDBShow;
 DROP PROCEDURE IF EXISTS InsertTMDBSeason;
 DROP PROCEDURE IF EXISTS InsertTMDBEpisode;
@@ -331,6 +334,80 @@ BEGIN
     ORDER BY C.cast_order;
 END $$
 
+-- =================================================================
+-- Procedure : GetEpisodeCrewByTMDBId
+-- Get Episode Crew Details for a specific show, season, and episode
+-- =================================================================
+CREATE PROCEDURE GetEpisodeCrewByTMDBId(
+    IN p_tmdb_show_id VARCHAR(100),
+    IN p_season_number INT,
+    IN p_episode_number INT
+)
+BEGIN
+    SELECT 
+        P.tmdb_person_id,
+        P.person_name,
+        P.biography,
+        P.birthday,
+        P.place_of_birth,
+        C.job,
+        C.department,
+        P.profile_path
+    FROM TMDB_EPISODE_CREW C
+    INNER JOIN TMDB_PERSON P 
+        ON C.tmdb_person_id = P.tmdb_person_id
+    INNER JOIN TMDB_EPISODE E
+        ON C.tmdb_episode_id = E.tmdb_episode_id
+    WHERE E.tmdb_show_id = p_tmdb_show_id
+    AND E.season_number = p_season_number
+    AND E.episode_number = p_episode_number
+    ORDER BY C.department, C.job;
+END $$
+
+-- ================================================
+-- Procedure : GetPersonDetails 
+-- Get Person Details for a specific TMDB Person Id
+-- ================================================
+CREATE PROCEDURE GetPersonDetails(
+    IN p_tmdb_person_id INT
+)
+BEGIN
+    SELECT 
+        tmdb_person_id,
+        person_name,
+        biography,
+        birthday,
+        place_of_birth,
+        profile_path
+    FROM TMDB_PERSON
+    WHERE tmdb_person_id = p_tmdb_person_id;
+END $$
+
+-- ============================================================
+-- Procedure : GetPersonRelatedRoles
+-- Get Shows, Seasons, Episodes, and Character Names 
+-- related to a specific TMDB Person Id
+-- ============================================================
+CREATE PROCEDURE GetPersonRelatedRoles(
+    IN p_tmdb_person_id INT
+)
+BEGIN
+    SELECT 
+        P.tmdb_person_id as tmdb_person_id,
+        P.person_name AS person_name,
+        e.tmdb_show_id AS tmdb_show_id,
+        (SELECT S.name FROM TMDB_SHOW S WHERE S.tmdb_id = E.tmdb_show_id) AS show_name,
+        EC.character_name   AS character_name,
+        E.name AS episode_name,
+        E.season_number AS season_number,
+        E.episode_number AS episode_number
+    FROM TMDB_EPISODE_CAST EC
+    INNER JOIN TMDB_PERSON P 
+    ON EC.tmdb_person_id = P.tmdb_person_id
+    INNER JOIN TMDB_EPISODE E
+    ON EC.tmdb_episode_id = E.tmdb_episode_id
+    WHERE EC.tmdb_person_id = p_tmdb_person_id;  
+END $$
 
 -- =========================================
 -- Procedure : InsertTMDBShow
