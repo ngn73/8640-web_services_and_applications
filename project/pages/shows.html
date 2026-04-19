@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shows</title>
+{% extends "base.html" %}
 
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/shows.css') }}">
-</head>
-<body>
-    <main class="shows-page">
+{% block title %}Shows{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/shows.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="shows-page">
         <header class="shows-header">
             <h1>Shows</h1>
             <p class="shows-subtitle">Browse your TV library</p>
@@ -62,6 +60,5 @@
                 </a>
             {% endfor %}
         </section>
-    </main>
-</body>
-</html>
+    </div>
+{% endblock %}

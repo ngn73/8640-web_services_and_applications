@@ -1,18 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ show.name }}</title>
+{% extends "base.html" %}
+
+{% block title %}{{ show.name }}{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/show_details.css') }}">
-</head>
-<header class="page-header">
-    <a href="{{ url_for('shows') }}" class="home-link">
-        ← Home
-    </a>
-</header>
-<body>
-    
+{% endblock %}
+
+
+{% block content %}
     <section class="hero" style="background-image: url('https://image.tmdb.org/t/p/original{{ artwork.backdrop.file_path }}');">
         <div class="hero-overlay"></div>
         <div class="hero-content">
@@ -29,7 +24,7 @@
         </div>
     </section>
     
-    <main class="details-container">
+    <div class="details-container">
         <!-- LEFT COLUMN -->
         <div class="poster-column">
             <img
@@ -67,9 +62,5 @@
                 </a>
             {% endfor %}
         </div>
-    </main>
-
-</body>
-</html>
-
-And the CSS:
+    </div>
+{% endblock %}

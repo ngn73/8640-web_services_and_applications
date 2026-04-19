@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ show.name }} - S{{ season.season_number }}E{{ episode.episode_number }} Cast</title>
+{% extends "base.html" %}
 
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+{% block title %}{{ show.name }}{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/episode_cast.css') }}">
-</head>
-<body>
-    <main class="episode-cast-page">
+{% endblock %}
 
+{% block header %}
+    <div class="episode-cast-page">
         <header class="page-top">
             <div class="nav-links">
                 <a href="{{ url_for('shows') }}" class="nav-link">Home</a>
@@ -27,7 +24,9 @@
                 <h2>{{ episode.name }}</h2>
             </div>
         </header>
+{% endblock %}
 
+{% block content %}
         <section class="episode-summary">
             {% if episode.still_path %}
                 <div class="episode-still-wrap">
@@ -89,7 +88,5 @@
                 {% endfor %}
             </div>
         </section>
-
-    </main>
-</body>
-</html>
+    </div>  
+{% endblock %}

@@ -1,22 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ show.name }} - Season {{ season.season_number }}</title>
+{% extends "base.html" %}
 
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+{% block title %}{{ show.name }}{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/season_details.css') }}">
-</head>
-<header class="page-header">
-    <a href="{{ url_for('shows') }}" class="home-link">
-        ← Home
-    </a>
-</header>
-<body>
+{% endblock %}
 
-    <main class="season-page">
-
+{% block content %}
+    <div class="season-page">
         <section class="season-header">
             <div class="season-poster-column">
                 {% if season.poster_path %}
@@ -112,8 +103,5 @@
                 {% endfor %}
             </div>
         </section>
-
-    </main>
-
-</body>
-</html>
+    </div>
+{% endblock %}

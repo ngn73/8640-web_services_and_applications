@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TV App{% endblock %}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+{% block header %}
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="{{ url_for('shows') }}" class="site-logo">TV Tracker</a>
+
+            <nav class="site-nav">
+                <a href="{{ url_for('shows') }}">Home</a>
+            </nav>
+        </div>
+    </header>
+{% endblock %}
+    <main class="site-main">
+        {% block content %}{% endblock %}
+    </main>
+{% block footer %}
+    <footer class="site-footer">
+        <div class="footer-inner">
+
+            <div class="footer-left">
+                <span>Data provided by</span>
+
+                <a href="https://www.themoviedb.org" target="_blank">
+                    TMDB
+                </a>
+
+                <span>•</span>
+
+                <a href="https://trakt.tv" target="_blank">
+                    Trakt
+                </a>
+            </div>
+
+            <div class="footer-right">
+                <a 
+                    href="https://github.com/ngn73/8640-web_services_and_applications/tree/main/project"
+                    target="_blank"
+                    class="github-link"
+                >
+                    View Project on GitHub
+                </a>
+            </div>
+
+        </div>
+    </footer>
+{% endblock %}
+</body>
+</html>

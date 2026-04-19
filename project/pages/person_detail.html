@@ -1,15 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ person.person_name }}</title>
+{% extends "base.html" %}
 
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+{% block title %}{{ person.person_name }}{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/person_detail.css') }}">
-</head>
-<body>
-    <main class="person-page">
+{% endblock %}
+{% block content %}
+    <div class="person-page">
         
         <header class="page-top">
             <div class="nav-links">
@@ -110,6 +107,5 @@
         </section>
         {% endif %}
 
-    </main>
-</body>
-</html>
+    </div>
+{% endblock %}
