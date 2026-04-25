@@ -1,5 +1,5 @@
 #==========================================================================================
-#=====                       (Called by Windows Task Scheduler)                 ===========   
+#=====                       (Called by Task Scheduler)                 ===========   
 #=====  Command lines used in setting up the scheduler to refresh tmdb data     ===========
 #=====  Input parameter (%1) is the type of refresh to perform (daily/weekly).  ===========
 #=====  "tmdb_full", "tmdb_delta", or "trakt" are the expected values.          ===========

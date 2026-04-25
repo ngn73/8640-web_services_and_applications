@@ -138,7 +138,23 @@ class dao_tmdb:
                 conn.rollback()
                 raise
             
-    
+    def get_episode_crew(self, tmdb_id: str, season_number: int, episode_number: int) -> list:
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    args = (tmdb_id, season_number, episode_number)
+                    cur.callproc("GetEpisodeCrewByTMDBId", args)
+
+                    crew = []
+                    for res in cur.stored_results():
+                        rows = res.fetchall()
+                        crew.extend(rows)
+                return crew
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_episode_crew -- Error retrieving episode crew details for show ID {tmdb_id}, season number {season_number}, episode number {episode_number}")
+                conn.rollback()
+                raise
+
     def get_person_details(self, tmdb_person_id: int) -> dict:
         with self.db.get_connection() as conn:
             try:
@@ -173,6 +189,22 @@ class dao_tmdb:
                 conn.rollback()
                 raise
 
+    def get_latest_watched_episode_details(self) -> list:
+        with self.db.get_connection() as conn:
+            try:
+                with self.db.get_cursor(conn, dictionary=True) as cur:
+                    cur.callproc("GetLatestWatchedEpisodeDetails")
+
+                    latest_watched_episodes = []
+                    for res in cur.stored_results():
+                        rows = res.fetchall()
+                        latest_watched_episodes.extend(rows)
+                return latest_watched_episodes
+            except:
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_latest_watched_episode_details -- Error retrieving latest watched episode details")
+                conn.rollback()
+                raise
+    
     def  bulk_insert_shows(self, shows_rows: list):
         self.mylogger.logInfoMessage("Starting bulk insert of show details into database...")
         for row in shows_rows:

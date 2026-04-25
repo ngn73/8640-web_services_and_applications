@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Weekly Watch Plan{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/weekly_watch_plan.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="weekly-page">
+    <header class="weekly-header">
+        <h1>Weekly Watch Plan</h1>
+        <p class="weekly-subtitle">Latest shows watched over the past 7 days</p>
+    </header>
+
+    <div class="weekly-list">
+        {% for item in weekly_rows %}
+            <article class="weekly-card">
+                <div class="weekly-day">
+                    <h2>
+                        {% if item.dayofweek == 1 %}Sunday
+                        {% elif item.dayofweek == 2 %}Monday
+                        {% elif item.dayofweek == 3 %}Tuesday
+                        {% elif item.dayofweek == 4 %}Wednesday
+                        {% elif item.dayofweek == 5 %}Thursday
+                        {% elif item.dayofweek == 6 %}Friday
+                        {% elif item.dayofweek == 7 %}Saturday
+                        {% else %}Unknown Day
+                        {% endif %}
+                    </h2>
+
+                    <p>
+                        {{ item.latestdate.strftime('%Y-%m-%d') if item.latestdate else 'No date' }}
+                    </p>
+                </div>
+
+                <div class="weekly-poster-wrap">
+                    {% if item.poster %}
+                        <img
+                            class="weekly-poster"
+                            src="https://image.tmdb.org/t/p/w300{{ item.poster }}"
+                            alt="Poster"
+                        >
+                    {% else %}
+                        <div class="weekly-poster weekly-poster-placeholder">No Image</div>
+                    {% endif %}
+                </div>
+
+                <div class="weekly-body">
+                    <div class="weekly-logo-wrap">
+                        {% if item.logo %}
+                            <img
+                                class="weekly-logo"
+                                src="https://image.tmdb.org/t/p/w500{{ item.logo }}"
+                                alt="Show logo"
+                            >
+                        {% else %}
+                            <h3 class="weekly-show-title">Show {{ item.tmdb_id }}</h3>
+                        {% endif %}
+                    </div>
+
+                    <p class="weekly-episode-code">
+                        Season {{ item.season }} · Episode {{ item.episode }}
+                    </p>
+
+                    <p class="weekly-watched-time">
+                        Watched:
+                        {{ item.last_watched_at.strftime('%H:%M') if item.last_watched_at else 'N/A' }}
+                    </p>
+
+                    <p class="weekly-rating">
+                        Rating: {{ item.rating if item.rating else '--' }}/10
+                    </p>
+
+                    <a
+                        class="weekly-link"
+                        href="{{ url_for('season_details', tmdb_show_id=item.tmdb_id, season_number=item.season) }}"
+                    >
+                        Open Season
+                    </a>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

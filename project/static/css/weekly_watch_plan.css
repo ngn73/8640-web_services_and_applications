@@ -1,0 +1,138 @@
+.weekly-page {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 32px 40px 50px;
+}
+
+.weekly-header {
+    margin-bottom: 28px;
+}
+
+.weekly-header h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.weekly-subtitle {
+    color: #bdbdbd;
+}
+
+.weekly-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.weekly-card {
+    display: grid;
+    grid-template-columns: 160px 90px 1fr;
+    gap: 18px;
+    align-items: center;
+
+    background: rgba(255,255,255,0.04);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.24);
+}
+
+.weekly-day h2 {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+}
+
+.weekly-day p {
+    color: #bcbcbc;
+    font-size: 0.9rem;
+}
+
+.weekly-poster-wrap {
+    width: 90px;
+    aspect-ratio: 2 / 3;
+    background: #222;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.weekly-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.weekly-poster-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 0.8rem;
+}
+
+.weekly-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.weekly-logo-wrap {
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+}
+
+.weekly-logo {
+    max-width: 260px;
+    max-height: 50px;
+    width: auto;
+    height: auto;
+    display: block;
+}
+
+.weekly-show-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.weekly-episode-code {
+    color: #7ddc8b;
+    font-weight: 600;
+}
+
+.weekly-watched-time,
+.weekly-rating {
+    color: #d4d4d4;
+    font-size: 0.92rem;
+}
+
+.weekly-link {
+    display: inline-block;
+    width: fit-content;
+    margin-top: 4px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.weekly-link:hover {
+    background: rgba(255,255,255,0.16);
+}
+
+@media (max-width: 850px) {
+    .weekly-page {
+        padding: 24px 20px 40px;
+    }
+
+    .weekly-card {
+        grid-template-columns: 1fr;
+        align-items: start;
+    }
+
+    .weekly-poster-wrap {
+        width: 120px;
+    }
+}

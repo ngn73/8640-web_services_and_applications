@@ -32,6 +32,8 @@ def show_details(tmdb_show_id):
     artwork = dao.get_show_artwork(tmdb_show_id, rated=False)
     # Get the show seasons
     seasons = dao.get_season_details(tmdb_show_id)
+
+
     
     if not show:
         return "TV Show not found", 404
@@ -81,14 +83,22 @@ def episode_cast(tmdb_show_id, season_number, episode_number):
     season = dao.get_season_details_by_number(tmdb_show_id, season_number)
     episode = dao.get_episode_details_by_number(tmdb_show_id, season_number, episode_number)
     cast = dao.get_episode_cast(tmdb_show_id, season_number, episode_number)
+    crew = dao.get_episode_crew(tmdb_show_id, season_number, episode_number)
 
     return render_template(
         "episode_cast.html",
         show=show,
         season=season,
         episode=episode,
-        cast=cast
+        cast=cast,
+        crew=crew
     )
+
+
+@app.route("/weekly_watch_plan")
+def weekly_watch_plan():
+    weekly_rows = dao.get_latest_watched_episode_details()
+    return render_template("weekly_watch_plan.html", weekly_rows=weekly_rows)
 
 if __name__ == '__main__':
     app.run(debug=True) 

@@ -2,6 +2,7 @@
 Name: api_trakt.py
 Description: 
 Object-based API client responsible for interacting with the Trakt API.
+Note: Due to the problematic nature of the Trakt API's access token expiration and refresh mechanism, this client also handles refreshing the access token when needed and persisting the new token pair to the database.
 '''
 
 
@@ -51,7 +52,16 @@ class api_trakt:
 
     # Refresh the Trakt access token and persist the new token pair.
     # Unlike TMDb, the Trakt access token expires after a certain time and needs to be refreshed using the refresh token.
+    # Data is persisted to the database to ensure the new token pair is available for the next time the API client is initialized.
     def refresh_access_token(self) -> None:
+        auth = self.dao_trakt.get_trakt_auth()
+
+        self.access_token = auth["access_token"]
+        self.refresh_token = auth["refresh_token"]
+        self.token_type = auth.get("token_type")
+        self.expires_in = auth.get("expires_in")
+        self.created_at = auth.get("created_at")
+
         url = f"{self.base_url}/oauth/token"
 
         payload = {
@@ -67,10 +77,16 @@ class api_trakt:
             "User-Agent": self.user_agent
         }
 
-        self.logger.logInfoMessage("Refreshing Trakt access token")
-
         response = self.session.post(url, json=payload, headers=headers, timeout=30)
-        response.raise_for_status()
+
+        if response.ok:
+            self.logger.logInfoMessage("Successfully refreshed Trakt access token.", ntfy=True)
+        else:
+            self.logger.logErrorMessage(
+                f"Trakt refresh failed. Status={response.status_code}. Response={response.text}",
+                ntfy=True
+            )
+            response.raise_for_status()
 
         token_data = response.json()
 
@@ -80,19 +96,19 @@ class api_trakt:
         self.expires_in = token_data.get("expires_in", self.expires_in)
         self.created_at = token_data.get("created_at", self.created_at)
 
-        self._set_api_headers()
-
-        # Persist latest tokens immediately
         self.dao_trakt.update_trakt_auth(
             access_token=self.access_token,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            redirect_uri=self.redirect_uri,
             refresh_token=self.refresh_token,
             token_type=self.token_type,
             expires_in=self.expires_in,
             created_at=self.created_at
         )
 
-        self.logger.logInfoMessage("Trakt access token refreshed successfully")
-    
+        self._set_api_headers()
+
     # Call this once at the start of the nightly job.
     def refresh_at_job_start(self) -> None:
         self.refresh_access_token()
@@ -101,10 +117,14 @@ class api_trakt:
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         response = self.session.get(url, params=params, timeout=60)
 
-        if response.status_code == 401 and retry_on_401:
-            self.logger.logInfoMessage(f"Received 401 Unauthorized for {endpoint}. Attempting to refresh access token and retry...")
+        if response.status_code == 200:
+            self.logger.logInfoMessage(f"Received successful (200) response for Trakt API call {endpoint}.", ntfy=True)
+        elif response.status_code == 401 and retry_on_401:
+            self.logger.logInfoMessage(f"Received 401 Unauthorized for Trakt API call{endpoint}. Attempting to refresh access token and retry...", ntfy=True)
             self.refresh_access_token()
             response = self.session.get(url, params=params, timeout=60)
+        else:
+            self.logger.logErrorMessage(f"Request to Trakt API call {endpoint} failed with status code {response.status_code}. Response: {response.text}", ntfy=True)
 
         response.raise_for_status()
         return response.json()

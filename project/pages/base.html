@@ -14,11 +14,20 @@
 {% block header %}
     <header class="site-header">
         <div class="header-inner">
-            <a href="{{ url_for('shows') }}" class="site-logo">TV Tracker</a>
+
+            <div class="header-left">
+                <a href="{{ url_for('shows') }}" class="site-logo">TV Tracker</a>
+            </div>
 
             <nav class="site-nav">
                 <a href="{{ url_for('shows') }}">Home</a>
+                <a href="{{ url_for('weekly_watch_plan') }}">This Week</a>
             </nav>
+
+            <div class="header-right">
+                <!-- empty for now or future icons -->
+            </div>
+
         </div>
     </header>
 {% endblock %}

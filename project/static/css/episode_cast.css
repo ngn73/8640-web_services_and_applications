@@ -175,6 +175,11 @@ body {
     background: rgba(255,255,255,0.16);
 }
 
+.person-role {
+    color: #cfcfcf;
+    font-size: 0.9rem;
+}
+
 @media (max-width: 900px) {
     .episode-cast-page {
         padding: 24px 20px 40px;

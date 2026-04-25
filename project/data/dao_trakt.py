@@ -45,11 +45,11 @@ class dao_trakt:
                 conn.rollback()
                 raise
 
-    def update_trakt_auth(self, access_token: str, refresh_token: str, token_type: str, expires_in: int, created_at: int):
+    def update_trakt_auth(self, access_token: str, refresh_token: str, token_type: str, expires_in: int, created_at: int, client_id: str, client_secret: str, redirect_uri: str):
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn) as cur:
-                    args = (access_token, refresh_token, token_type, expires_in, created_at)
+                    args = (access_token, client_id, client_secret, refresh_token, redirect_uri, token_type, expires_in, created_at)
                     cur.callproc("UpdateTraktAuth", args)
                 conn.commit()
             except Error as e:

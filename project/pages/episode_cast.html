@@ -88,5 +88,39 @@
                 {% endfor %}
             </div>
         </section>
+
+        <section class="cast-section">
+            <h3 class="section-title">Crew</h3>
+
+            <div class="cast-grid">
+                {% for person in crew %}
+                    <article class="cast-card">
+                        <div class="cast-image-wrap">
+                            {% if person.profile_path %}
+                                <img
+                                    class="cast-image"
+                                    src="https://image.tmdb.org/t/p/w300{{ person.profile_path }}"
+                                    alt="{{ person.person_name }}"
+                                >
+                            {% else %}
+                                <div class="cast-image cast-image-placeholder">No Image</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="cast-body">
+                            <h4 class="cast-name">{{ person.person_name }}</h4>
+
+                            <p class="cast-birthday">
+                                <strong>Born:</strong> 
+                                {{ person.birthday.strftime('%Y-%m-%d') if person.birthday else 'Unknown' }}
+                            </p>
+                            <p class="person-role">
+                                {{ person.job if person.job else person.department if person.department else 'Crew' }}
+                            </p>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
     </div>  
 {% endblock %}

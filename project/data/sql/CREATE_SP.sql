@@ -20,6 +20,7 @@ DROP PROCEDURE IF EXISTS GetEpisodeCastByTMDBId;
 drop PROCEDURE IF EXISTS GetEpisodeCrewByTMDBId;
 DROP PROCEDURE IF EXISTS GetPersonDetails;
 DROP PROCEDURE IF EXISTS GetPersonRelatedRoles;
+DROP PROCEDURE IF EXISTS GetLatestWatchedEpisodeDetails;
 DROP PROCEDURE IF EXISTS InsertTMDBShow;
 DROP PROCEDURE IF EXISTS InsertTMDBSeason;
 DROP PROCEDURE IF EXISTS InsertTMDBEpisode;
@@ -67,7 +68,10 @@ END $$
 -- =================================
 CREATE PROCEDURE UpdateTraktAuth(
     IN p_access_token CHAR(36),
+    IN p_client_id VARCHAR(255),
+    IN p_client_secret VARCHAR(255),
     IN p_refresh_token TEXT,
+    IN p_redirect_uri VARCHAR(500),
     IN p_token_type VARCHAR(50),
     IN p_expires_in INT,
     IN p_created_at BIGINT
@@ -75,14 +79,14 @@ CREATE PROCEDURE UpdateTraktAuth(
 BEGIN
     UPDATE TRAKT_AUTH
     SET access_token = p_access_token,
+        client_id = p_client_id,
+        client_secret = p_client_secret,
         refresh_token = p_refresh_token,
+        redirect_uri = p_redirect_uri,
         token_type = p_token_type,
         expires_in = p_expires_in,
         created_at = p_created_at,
-        refreshed_at = NOW(),
-        updated_at = NOW(),
-        last_refresh_status = 'SUCCESS',
-        last_refresh_error = NULL
+        refreshed_at = NOW()
     WHERE auth_id = 1;
 END $$
 
@@ -409,6 +413,62 @@ BEGIN
     WHERE EC.tmdb_person_id = p_tmdb_person_id;  
 END $$
 
+-- ==========================================================================
+-- Procedure : GetLatestWatchedEpisodeDetails   
+-- Get details of the most recently watched episode for each day of the week
+-- ==========================================================================
+CREATE PROCEDURE GetLatestWatchedEpisodeDetails(
+)
+BEGIN
+    WITH SQL1
+    AS
+    (
+        SELECT 
+        T.trakt_status_id, T.tmdb_id, S.name, T.season, T.episode, T.rating, T.last_watched_at, DAYOFWEEK(T.last_watched_at) AS dayofweek 
+        FROM trakt_status T
+        INNER JOIN tmdb_show S
+        ON T.tmdb_id = S.tmdb_id
+    ),
+    SQL2
+    AS
+    (
+        SELECT dayofweek AS dayofweek, MAX(last_watched_at) AS 'latestdate'
+        FROM SQL1
+        GROUP BY dayofweek
+    ),
+    SQL3
+    AS
+    (
+        SELECT T.trakt_status_id, T.tmdb_id, T.season, T.episode, T.rating, T.last_watched_at, S.dayofweek, S.latestdate 
+        FROM trakt_status T
+        INNER JOIN SQL2 S
+        ON DATE(T.last_watched_at) = DATE(S.latestdate)
+    ),
+    SQL4
+    AS
+    (
+        SELECT T.trakt_status_id, T.tmdb_id, T.season, T.episode, T.rating, T.last_watched_at, T.dayofweek, T.latestdate,
+        (
+            SELECT A.file_path
+            FROM tmdb_show_artwork A
+            WHERE A.artwork_type = 'poster'
+            AND A.tmdb_show_id = T.tmdb_id
+            ORDER BY A.vote_average DESC
+            LIMIT 1
+        ) AS 'poster',
+        (
+            SELECT A.file_path
+            FROM tmdb_show_artwork A
+            WHERE A.artwork_type = 'logo'
+            AND A.tmdb_show_id = T.tmdb_id
+            ORDER BY A.vote_average DESC
+            LIMIT 1
+        ) AS 'logo'
+        FROM SQL3 T
+    )
+
+    SELECT trakt_status_id, tmdb_id, season, episode, rating, last_watched_at, dayofweek, latestdate, poster, logo FROM SQL4;
+END $$
 -- =========================================
 -- Procedure : InsertTMDBShow
 -- INSERT TMDB Show Details

@@ -5,6 +5,9 @@ import api.api_ntfy as ntfy # for sending mobile notifications
 class app_logger:
     
     def __init__(self, loggername:str):
+        flask_log = logging.getLogger('werkzeug')
+        flask_log.disabled = True;  # suppress the excessive Flask logging
+        
         #read configuration
         log_active = cfg.LOGGING['active']
         log_filename = cfg.LOGGING['filename']
