@@ -1,5 +1,5 @@
 
-USE media_analytics_db;
+USE media_tracker_db;
 
 
 -- Initially Drop all the stored procedures.
@@ -97,7 +97,7 @@ END $$
 -- =========================================
 CREATE PROCEDURE InsertTraktStatus(
     IN p_trakt_status_id CHAR(36),
-    IN p_tmdb_id VARCHAR(100),
+    IN p_tmdb_show_id VARCHAR(100),
     IN p_season INT,
     IN p_episode INT,
     IN p_last_watched_at DATETIME,
@@ -105,8 +105,8 @@ CREATE PROCEDURE InsertTraktStatus(
     IN p_rated_at DATETIME
 )
 BEGIN
-    INSERT INTO TRAKT_STATUS (trakt_status_id, tmdb_id, season, episode, last_watched_at, rating, rated_at, updated_at)
-    VALUES (p_trakt_status_id, p_tmdb_id, p_season, p_episode, p_last_watched_at, p_rating, p_rated_at, NOW());
+    INSERT INTO TRAKT_STATUS (trakt_status_id, tmdb_show_id, season, episode, last_watched_at, rating, rated_at, updated_at)
+    VALUES (p_trakt_status_id, p_tmdb_show_id, p_season, p_episode, p_last_watched_at, p_rating, p_rated_at, NOW());
 END $$
 
 -- =========================================
@@ -115,7 +115,7 @@ END $$
 -- TMDB show, season, and episode
 -- =========================================
 CREATE PROCEDURE UpdateTraktStatus(
-    IN p_tmdb_id VARCHAR(100),
+    IN p_tmdb_show_id VARCHAR(100),
     IN p_season INT,
     IN p_episode INT,
     IN p_last_watched_at DATETIME,
@@ -125,7 +125,7 @@ CREATE PROCEDURE UpdateTraktStatus(
 BEGIN
     UPDATE TRAKT_STATUS 
     SET last_watched_at = p_last_watched_at, rating = p_rating, rated_at = p_rated_at, updated_at = NOW()
-    WHERE tmdb_id = p_tmdb_id AND season = p_season AND episode = p_episode;
+    WHERE tmdb_show_id = p_tmdb_show_id AND season = p_season AND episode = p_episode;
 END $$
 
 -- =========================================
@@ -133,14 +133,14 @@ END $$
 -- Get trakt status for a specific TMDB show, season, and episode
 -- =========================================
 CREATE PROCEDURE GetTraktStatus(
-    IN p_tmdb_id VARCHAR(100),
+    IN p_tmdb_show_id VARCHAR(100),
     IN p_season INT,
     IN p_episode INT
 )
 BEGIN
-    SELECT trakt_status_id, trakt_status_id, tmdb_id, season, episode, last_watched_at, rating, rated_at
+    SELECT trakt_status_id, trakt_status_id, tmdb_show_id, season, episode, last_watched_at, rating, rated_at
     FROM TRAKT_STATUS
-    WHERE tmdb_id = p_tmdb_id 
+    WHERE tmdb_show_id = p_tmdb_show_id 
     AND season = p_season 
     AND episode = p_episode
     ORDER BY last_watched_at DESC;
@@ -162,10 +162,10 @@ END $$
 -- =========================================
 CREATE PROCEDURE GetDistinctTMDBIds()
 BEGIN
-    SELECT DISTINCT tmdb_id
+    SELECT DISTINCT tmdb_show_id
     FROM TRAKT_STATUS
-    WHERE tmdb_id IS NOT NULL
-    ORDER BY tmdb_id;
+    WHERE tmdb_show_id IS NOT NULL
+    ORDER BY tmdb_show_id;
 END $$
 
 -- =====================================================================================
@@ -176,7 +176,7 @@ END $$
 CREATE PROCEDURE GetAllShows()
 BEGIN
 SELECT
-    TMDB.tmdb_id AS tmdb_id,
+    TMDB.tmdb_show_id AS tmdb_show_id,
     TMDB.name AS name,
     TMDB.overview AS overview,
     TMDB.first_air_date AS first_air_date,
@@ -191,20 +191,20 @@ SELECT
         SELECT A.file_path
         FROM TMDB_SHOW_ARTWORK A
         WHERE A.artwork_type = 'poster'
-        AND A.tmdb_show_id = TMDB.tmdb_id
+        AND A.tmdb_show_id = TMDB.tmdb_show_id
         ORDER BY A.vote_average DESC
         LIMIT 1
     ) AS poster_path
 FROM TMDB_SHOW TMDB
 LEFT JOIN (
     SELECT
-        tmdb_id,
+        tmdb_show_id,
         FLOOR(MAX(season * 10000 + episode) / 10000) AS latest_season,
         MOD(MAX(season * 10000 + episode), 10000) AS latest_episode
     FROM TRAKT_STATUS
-    GROUP BY tmdb_id
+    GROUP BY tmdb_show_id
 ) TK
-    ON TMDB.tmdb_id = TK.tmdb_id;
+    ON TMDB.tmdb_show_id = TK.tmdb_show_id;
 END $$
 
 
@@ -213,11 +213,11 @@ END $$
 -- Get Show Details for a specific TMDB Id
 -- ==========================================
 CREATE PROCEDURE GetShowDetailsByTMDBId(
-    IN p_tmdb_id VARCHAR(100)
+    IN p_tmdb_show_id VARCHAR(100)
 )
 BEGIN
     SELECT 
-        tmdb_id,
+        tmdb_show_id,
         name,
         overview,
         first_air_date,
@@ -227,7 +227,7 @@ BEGIN
         number_of_seasons,
         number_of_episodes
     FROM TMDB_SHOW
-    WHERE tmdb_id = p_tmdb_id;
+    WHERE tmdb_show_id = p_tmdb_show_id;
 END $$
 
 
@@ -283,7 +283,7 @@ BEGIN
         rating
     FROM TMDB_EPISODE E
     LEFT JOIN TRAKT_STATUS T
-    ON E.tmdb_show_id = T.tmdb_id AND E.season_number = T.season AND E.episode_number = T.episode
+    ON E.tmdb_show_id = T.tmdb_show_id AND E.season_number = T.season AND E.episode_number = T.episode
     WHERE tmdb_show_id = p_tmdb_show_id
     AND season_number = p_season_number
     AND (p_episode_number = -1 OR episode_number = p_episode_number);
@@ -400,7 +400,7 @@ BEGIN
         P.tmdb_person_id as tmdb_person_id,
         P.person_name AS person_name,
         e.tmdb_show_id AS tmdb_show_id,
-        (SELECT S.name FROM TMDB_SHOW S WHERE S.tmdb_id = E.tmdb_show_id) AS show_name,
+        (SELECT S.name FROM TMDB_SHOW S WHERE S.tmdb_show_id = E.tmdb_show_id) AS show_name,
         EC.character_name   AS character_name,
         E.name AS episode_name,
         E.season_number AS season_number,
@@ -424,10 +424,10 @@ BEGIN
     AS
     (
         SELECT 
-        T.trakt_status_id, T.tmdb_id, S.name, T.season, T.episode, T.rating, T.last_watched_at, DAYOFWEEK(T.last_watched_at) AS dayofweek 
+        T.trakt_status_id, T.tmdb_show_id, S.name, T.season, T.episode, T.rating, T.last_watched_at, DAYOFWEEK(T.last_watched_at) AS dayofweek 
         FROM trakt_status T
         INNER JOIN tmdb_show S
-        ON T.tmdb_id = S.tmdb_id
+        ON T.tmdb_show_id = S.tmdb_show_id
     ),
     SQL2
     AS
@@ -439,7 +439,7 @@ BEGIN
     SQL3
     AS
     (
-        SELECT T.trakt_status_id, T.tmdb_id, T.season, T.episode, T.rating, T.last_watched_at, S.dayofweek, S.latestdate 
+        SELECT T.trakt_status_id, T.tmdb_show_id, T.season, T.episode, T.rating, T.last_watched_at, S.dayofweek, S.latestdate 
         FROM trakt_status T
         INNER JOIN SQL2 S
         ON DATE(T.last_watched_at) = DATE(S.latestdate)
@@ -447,12 +447,12 @@ BEGIN
     SQL4
     AS
     (
-        SELECT T.trakt_status_id, T.tmdb_id, T.season, T.episode, T.rating, T.last_watched_at, T.dayofweek, T.latestdate,
+        SELECT T.trakt_status_id, T.tmdb_show_id, T.season, T.episode, T.rating, T.last_watched_at, T.dayofweek, T.latestdate,
         (
             SELECT A.file_path
             FROM tmdb_show_artwork A
             WHERE A.artwork_type = 'poster'
-            AND A.tmdb_show_id = T.tmdb_id
+            AND A.tmdb_show_id = T.tmdb_show_id
             ORDER BY A.vote_average DESC
             LIMIT 1
         ) AS 'poster',
@@ -460,21 +460,21 @@ BEGIN
             SELECT A.file_path
             FROM tmdb_show_artwork A
             WHERE A.artwork_type = 'logo'
-            AND A.tmdb_show_id = T.tmdb_id
+            AND A.tmdb_show_id = T.tmdb_show_id
             ORDER BY A.vote_average DESC
             LIMIT 1
         ) AS 'logo'
         FROM SQL3 T
     )
 
-    SELECT trakt_status_id, tmdb_id, season, episode, rating, last_watched_at, dayofweek, latestdate, poster, logo FROM SQL4;
+    SELECT trakt_status_id, tmdb_show_id, season, episode, rating, last_watched_at, dayofweek, latestdate, poster, logo FROM SQL4;
 END $$
 -- =========================================
 -- Procedure : InsertTMDBShow
 -- INSERT TMDB Show Details
 -- =========================================
 CREATE PROCEDURE InsertTMDBShow(
-    IN p_tmdb_id VARCHAR(100),
+    IN p_tmdb_show_id VARCHAR(100),
     IN p_name VARCHAR(255),
     IN p_overview TEXT,
     IN p_first_air_date DATE,
@@ -486,10 +486,10 @@ CREATE PROCEDURE InsertTMDBShow(
 )
 BEGIN
     INSERT INTO TMDB_SHOW (
-        tmdb_id, name, overview, first_air_date, status, vote_average, 
+        tmdb_show_id, name, overview, first_air_date, status, vote_average, 
         vote_count, number_of_seasons, number_of_episodes)
     VALUES 
-    (p_tmdb_id, p_name, p_overview, p_first_air_date, p_status, p_vote_average, 
+    (p_tmdb_show_id, p_name, p_overview, p_first_air_date, p_status, p_vote_average, 
     p_vote_count, p_number_of_seasons, p_number_of_episodes)
     ON DUPLICATE KEY UPDATE
         name = VALUES(name),
@@ -703,12 +703,12 @@ END $$
 CREATE PROCEDURE Get_TMDB_Trakt_Delta(
 )
 BEGIN
-    SELECT DISTINCT ts.tmdb_id
+    SELECT DISTINCT ts.tmdb_show_id
     FROM TRAKT_STATUS ts
     LEFT JOIN TMDB_SHOW s
-    ON s.tmdb_id = ts.tmdb_id
-    WHERE ts.tmdb_id IS NOT NULL
-    AND s.tmdb_id IS NULL;
+    ON s.tmdb_show_id = ts.tmdb_show_id
+    WHERE ts.tmdb_show_id IS NOT NULL
+    AND s.tmdb_show_id IS NULL;
 END $$
 
 -- =====================================================

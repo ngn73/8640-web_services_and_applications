@@ -1,14 +1,18 @@
+-- Drop DATABASE
+DROP DATABASE IF EXISTS MEDIA_TRACKER_DB;
+
 -- Create Database
-CREATE DATABASE IF NOT EXISTS MEDIA_ANALYTICS_DB
+CREATE DATABASE MEDIA_TRACKER_DB
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
 -- Use Database
-USE MEDIA_ANALYTICS_DB;
+USE MEDIA_TRACKER_DB;
 
 
---Use this to Drop and Recreate the TABLES.
+-- Use this to Drop and Recreate the TABLES.
 DROP TABLE IF EXISTS TRAKT_STATUS;
+DROP TABLE IF EXISTS TRAKT_AUTH;
 DROP TABLE IF EXISTS TMDB_SHOW;
 DROP TABLE IF EXISTS TMDB_SEASON;
 DROP TABLE IF EXISTS TMDB_EPISODE;
@@ -17,6 +21,8 @@ DROP TABLE IF EXISTS TMDB_EPISODE_CAST;
 DROP TABLE IF EXISTS TMDB_EPISODE_CREW;
 DROP TABLE IF EXISTS TMDB_SHOW_NETWORK;
 DROP TABLE IF EXISTS TMDB_NETWORK;
+DROP TABLE IF EXISTS TMDB_SHOW_ARTWORK;
+
 
 -- Create Table
 CREATE TABLE TRAKT_AUTH (
@@ -35,7 +41,7 @@ CREATE TABLE TRAKT_AUTH (
 -- Create Table
 CREATE TABLE TRAKT_STATUS (
     trakt_status_id CHAR(36) PRIMARY KEY,  
-    tmdb_id VARCHAR(100),
+    tmdb_show_id INT NOT NULL,
     season INT,
     episode INT,
     last_watched_at DATETIME,
@@ -43,14 +49,14 @@ CREATE TABLE TRAKT_STATUS (
     rated_at DATETIME NULL,
     updated_at DATETIME NULL,
 
-    UNIQUE KEY uniq_episode (tmdb_id, season, episode),
-    INDEX idx_tmdb (tmdb_id),
+    UNIQUE KEY uniq_episode (tmdb_show_id, season, episode),
+    INDEX idx_tmdb (tmdb_show_id),
     INDEX idx_last_watched (last_watched_at)
 );
 
 -- Create Table
 CREATE TABLE TMDB_SHOW (
-    tmdb_id VARCHAR(100) PRIMARY KEY,
+    tmdb_show_id INT PRIMARY KEY,
     name VARCHAR(255),
     overview TEXT,
     first_air_date DATE,
@@ -72,6 +78,8 @@ CREATE TABLE TMDB_SEASON (
     episode_count INT,
     poster_path VARCHAR(255),
 
+    CONSTRAINT fk_season_show
+            FOREIGN KEY (tmdb_show_id) REFERENCES TMDB_SHOW(tmdb_show_id),
     UNIQUE KEY uniq_show_season (tmdb_show_id, season_number)
 );
 
@@ -80,17 +88,16 @@ CREATE TABLE TMDB_EPISODE (
     tmdb_show_id INT NOT NULL,         -- tv_id
     season_number INT NOT NULL,
     episode_number INT NOT NULL,
-    
     name VARCHAR(255),
     overview TEXT,
     air_date DATE,
     runtime INT,
-    
     vote_average DECIMAL(3,1),
     vote_count INT,
-    
     still_path VARCHAR(255),
 
+    CONSTRAINT fk_episode_show
+            FOREIGN KEY (tmdb_show_id) REFERENCES TMDB_SHOW(tmdb_show_id),
     UNIQUE KEY uniq_episode (tmdb_show_id, season_number, episode_number)
 );
 
@@ -134,6 +141,14 @@ CREATE TABLE TMDB_EPISODE_CREW (
         FOREIGN KEY (tmdb_person_id) REFERENCES TMDB_PERSON(tmdb_person_id)
 );
 
+CREATE TABLE TMDB_NETWORK (
+    tmdb_network_id INT NOT NULL,
+    name VARCHAR(255),
+    origin_country VARCHAR(10),
+    logo_path VARCHAR(255),
+    PRIMARY KEY (tmdb_network_id)
+);
+
 CREATE TABLE TMDB_SHOW_NETWORK (
     tmdb_network_id INT NOT NULL,
     tmdb_show_id INT NOT NULL,
@@ -141,22 +156,13 @@ CREATE TABLE TMDB_SHOW_NETWORK (
     PRIMARY KEY (tmdb_show_id, tmdb_network_id),
 
     CONSTRAINT fk_show_network_show
-        FOREIGN KEY (tmdb_show_id) REFERENCES TMDB_SHOW(tmdb_id),
+        FOREIGN KEY (tmdb_show_id) REFERENCES TMDB_SHOW(tmdb_show_id),
 
     CONSTRAINT fk_show_network_network
         FOREIGN KEY (tmdb_network_id) REFERENCES TMDB_NETWORK(tmdb_network_id)
 );
 
-CREATE TABLE TMDB_NETWORK (
-    tmdb_network_id INT NOT NULL,
-    name VARCHAR(255),
-    origin_country VARCHAR(10),
-    logo_path VARCHAR(255),
-    PRIMARY KEY (tmdb_network_id),
 
-    CONSTRAINT fk_network_show
-        FOREIGN KEY (tmdb_network_id) REFERENCES TMDB_SHOW(network_id)
-);
 
 CREATE TABLE TMDB_SHOW_ARTWORK (
     artwork_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -168,7 +174,6 @@ CREATE TABLE TMDB_SHOW_ARTWORK (
     vote_average DECIMAL(3,1) NULL,
 
     UNIQUE KEY unique_artwork (tmdb_show_id, artwork_type, file_path(100)),
-
     CONSTRAINT fk_show_artwork_show
         FOREIGN KEY (tmdb_show_id) REFERENCES TMDB_SHOW(tmdb_show_id)
 );
