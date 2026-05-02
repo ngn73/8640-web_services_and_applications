@@ -55,7 +55,7 @@
                                 alt="Show logo"
                             >
                         {% else %}
-                            <h3 class="weekly-show-title">Show {{ item.tmdb_id }}</h3>
+                            <h3 class="weekly-show-title">Show {{ item.tmdb_show_id }}</h3>
                         {% endif %}
                     </div>
 
@@ -74,7 +74,7 @@
 
                     <a
                         class="weekly-link"
-                        href="{{ url_for('season_details', tmdb_show_id=item.tmdb_id, season_number=item.season) }}"
+                        href="{{ url_for('season_details', tmdb_show_id=item.tmdb_show_id, season_number=item.season) }}"
                     >
                         Open Season
                     </a>

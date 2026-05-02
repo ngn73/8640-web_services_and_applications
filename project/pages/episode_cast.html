@@ -11,7 +11,7 @@
         <header class="page-top">
             <div class="nav-links">
                 <a href="{{ url_for('shows') }}" class="nav-link">Home</a>
-                <a href="{{ url_for('season_details', tmdb_show_id=show.tmdb_id, season_number=season.season_number) }}" class="nav-link">
+                <a href="{{ url_for('season_details', tmdb_show_id=show.tmdb_show_id, season_number=season.season_number) }}" class="nav-link">
                     Back to Season
                 </a>
             </div>
@@ -70,7 +70,7 @@
                             </p>
 
                             <p class="cast-birthday">
-                                <strong>Born:</strong> 
+                                <strong>Born:</strong>
                                 {{ person.birthday.strftime('%Y-%m-%d') if person.birthday else 'Unknown' }}
                             </p>
                             <p class="cast-birthday">
@@ -111,7 +111,7 @@
                             <h4 class="cast-name">{{ person.person_name }}</h4>
 
                             <p class="cast-birthday">
-                                <strong>Born:</strong> 
+                                <strong>Born:</strong>
                                 {{ person.birthday.strftime('%Y-%m-%d') if person.birthday else 'Unknown' }}
                             </p>
                             <p class="person-role">
@@ -122,5 +122,5 @@
                 {% endfor %}
             </div>
         </section>
-    </div>  
+    </div>
 {% endblock %}

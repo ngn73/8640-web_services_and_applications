@@ -15,7 +15,7 @@
 
         <section class="shows-grid">
             {% for show in shows %}
-                <a class="show-card" href="{{ url_for('show_details', tmdb_show_id=show.tmdb_id) }}">
+                <a class="show-card" href="{{ url_for('show_details', tmdb_show_id=show.tmdb_show_id) }}">
                     <div class="show-poster-wrap">
                         {% if show.poster_path %}
                             <img
@@ -51,7 +51,7 @@
                                     {% if (show.number_of_seasons == show.latest_season) and (show.latest_episode == show.number_of_episodes) %}
                                         <span>Progress: Completed</span>
                                     {% else %}
-                                        <span>Progress: S{{ show.latest_season }}E{{ show.latest_episode }}</span> 
+                                        <span>Progress: S{{ show.latest_season }}E{{ show.latest_episode }}</span>
                                     {% endif %}
                                 </div>
                             {% endif %}

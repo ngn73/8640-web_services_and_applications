@@ -46,18 +46,18 @@ class tmdb_mgr:
     def _load_trakt_data(self, trakt_shows:list):
 
         #trakt_shows = ['60585', '456', '4546', '93870', '83867'] # for short test runs , comment out in production
-        #trakt_shows = ['60585'] 
+        #trakt_shows = ['60585']
 
         show_idx = 0
-        for tmdb_id in trakt_shows:
+        for tmdb_show_id in trakt_shows:
             show_idx += 1
             if(show_idx % 10 == 0): # log progress every 10 shows
-                self.myLogger.logInfoMessage(f"Extracting details for show {show_idx} of {len(trakt_shows)} with TMDb ID {tmdb_id}...", ntfy=True)
+                self.myLogger.logInfoMessage(f"Extracting details for show {show_idx} of {len(trakt_shows)} with TMDb ID {tmdb_show_id}...", ntfy=True)
 
             try:
-                self._extract_TMDB_show_details(tmdb_id)    #Start the recursive extraction process to populate all the relevant lists
+                self._extract_TMDB_show_details(tmdb_show_id)    #Start the recursive extraction process to populate all the relevant lists
             except Exception as e:
-                self.myLogger.logErrorMessage(f"Error occurred while extracting details for show {show_idx} with TMDb ID {tmdb_id}: {str(e)}")
+                self.myLogger.logErrorMessage(f"Error occurred while extracting details for show {show_idx} with TMDb ID {tmdb_show_id}: {str(e)}")
 
         self.myLogger.logInfoMessage("TMDb data extraction process completed. All lists populated with extracted data.")
 
@@ -66,12 +66,12 @@ class tmdb_mgr:
         trakt_shows = self.get_delta_shows()  #Get the delta list of shows in trakt_status table
         if(not trakt_shows or len(trakt_shows) == 0):
             self.myLogger.logInfoMessage("No shows found in trakt_status table. Skipping TMDb data extraction and insertion.")
-            return  
+            return
         else:
             self.myLogger.logInfoMessage(f"Found {len(trakt_shows)} shows in trakt_status table. Starting extraction of TMDb details for these shows.", ntfy=True)
             self._load_trakt_data(trakt_shows)  #Populate the lists
             self._save_to_db()                  #Save the lists to the database using the DAO methods
-        
+
         self.myLogger.logInfoMessage("TMDb data extraction and insertion for delta load completed.", ntfy=True)
 
     def extract_and_save_all_tmdb_details(self):
@@ -79,7 +79,7 @@ class tmdb_mgr:
         trakt_shows = self.get_distinct_shows()  #Get the list of distinct shows in trakt_status table (for full load) or the delta list (for delta load)
         if(not trakt_shows or len(trakt_shows) == 0):
             self.myLogger.logInfoMessage("No shows found in trakt_status table. Skipping TMDb data extraction and insertion.")
-            return  
+            return
         else:
             self.myLogger.logInfoMessage(f"Found {len(trakt_shows)} shows in trakt_status table. Starting extraction of TMDb details for these shows.", ntfy=True)
             self._load_trakt_data(trakt_shows)  #Populate the lists
@@ -94,12 +94,12 @@ class tmdb_mgr:
         self.dao_tmdb.clear_tmdb() # Clear the existing TMDB data before inserting the new data.
         self.dao_tmdb.insert_show_batch(self.shows_rows)
         self.dao_tmdb.insert_season_batch(self.seasons_rows)
-        self.dao_tmdb.insert_show_network_batch(self.show_network_rows)
-        self.dao_tmdb.insert_network_batch(self.network_rows)
         self.dao_tmdb.insert_episode_batch(self.episodes_rows)
+        self.dao_tmdb.insert_network_batch(self.network_rows)
+        self.dao_tmdb.insert_show_network_batch(self.show_network_rows)
+        self.dao_tmdb.insert_person_batch(self.person_rows)
         self.dao_tmdb.insert_cast_batch(self.episode_cast_rows)
         self.dao_tmdb.insert_crew_batch(self.episode_crew_rows)
-        self.dao_tmdb.insert_person_batch(self.person_rows)
         self.dao_tmdb.insert_show_artwork_batch(self.show_artwork_rows)
 
         self.myLogger.logInfoMessage("TMDb data insertion completed.")
@@ -115,7 +115,7 @@ class tmdb_mgr:
             trakt_shows = None
 
         return trakt_shows
-    
+
     def get_delta_shows(self):
         # get delta list of TMDB Ids in "trakt_status" Table
         try:
@@ -127,16 +127,16 @@ class tmdb_mgr:
 
         return trakt_shows
 
-    def _extract_TMDB_show_details(self, tmdb_id: str):
+    def _extract_TMDB_show_details(self, tmdb_show_id: int):
         try:
-            show_details = self.api_client.get_show_season_details(tmdb_id)
+            show_details = self.api_client.get_show_season_details(tmdb_show_id)
         except Exception as e:
-            self.myLogger.logErrorMessage(f"Error occurred while fetching show details for TMDb ID {tmdb_id}: {str(e)}")
+            self.myLogger.logErrorMessage(f"Error occurred while fetching show details for TMDb ID {tmdb_show_id}: {str(e)}")
             raise
 
         # Extract the relevant 'Show' details from the response json
         self.shows_rows.append({
-            "tmdb_id": tmdb_id,
+            "tmdb_show_id": tmdb_show_id,
             "name": show_details.get("name"),
             "overview": show_details.get("overview"),
             "first_air_date": show_details.get("first_air_date"),
@@ -151,7 +151,7 @@ class tmdb_mgr:
         for season in show_details.get("seasons", []):
             self.seasons_rows.append({
                 "tmdb_season_id": season.get("id"),
-                "tmdb_id": tmdb_id,
+                "tmdb_show_id": tmdb_show_id,
                 "season_number": season.get("season_number"),
                 "name": season.get("name"),
                 "overview": season.get("overview"),
@@ -159,7 +159,7 @@ class tmdb_mgr:
                 "episode_count": season.get("episode_count"),
                 "poster_path": season.get("poster_path")
             })
-            self._extract_TMDB_episode_details(tmdb_id, season.get("season_number"))
+            self._extract_TMDB_episode_details(tmdb_show_id, season.get("season_number"))
 
         # extract the network details for the show (from same API call)
         for network in show_details.get("networks", []):
@@ -170,21 +170,21 @@ class tmdb_mgr:
                 "logo_path": network.get("logo_path")
             })
             self.show_network_rows.append({
-                "tmdb_show_id": tmdb_id,
+                "tmdb_show_id": tmdb_show_id,
                 "tmdb_network_id": network.get("id")
             })
-        
+
         #finally extract all artwork paths for the show (from separate API call)
         try:
-            artwork_details = self.api_client.get_show_artwork(tmdb_id) 
+            artwork_details = self.api_client.get_show_artwork(tmdb_show_id)
         except Exception as e:
-            self.myLogger.logErrorMessage(f"Error occurred while fetching artwork details for TMDb ID {tmdb_id}: {str(e)}")
+            self.myLogger.logErrorMessage(f"Error occurred while fetching artwork details for TMDb ID {tmdb_show_id}: {str(e)}")
             raise
-        
+
         for artwork in artwork_details.get("posters", []):
             if artwork.get("iso_639_1") == "en": # some shows have non-english images (or blank), so check before inserting
                 self.show_artwork_rows.append({
-                    "tmdb_show_id": tmdb_id,
+                    "tmdb_show_id": tmdb_show_id,
                     "file_path": artwork.get("file_path"),
                     "artwork_type": "poster",
                     "width": artwork.get("width"),
@@ -194,7 +194,7 @@ class tmdb_mgr:
         for artwork in artwork_details.get("backdrops", []):
             if artwork.get("iso_639_1") == None: # some backdrops have logo images (where iso_639_1 is not None), so check before inserting
                 self.show_artwork_rows.append({
-                "tmdb_show_id": tmdb_id,
+                "tmdb_show_id": tmdb_show_id,
                 "file_path": artwork.get("file_path"),
                 "artwork_type": "backdrop",
                 "width": artwork.get("width"),
@@ -202,13 +202,13 @@ class tmdb_mgr:
                 "vote_avg": artwork.get("vote_average")
             })
 
-        # for logos, prefer English language if available, 
+        # for logos, prefer English language if available,
         # otherwise take the first logo (even if non-English or no language specified)
         logos = artwork_details.get("logos", [])
         english = [l for l in logos if l.get("iso_639_1") == "en"]
         logo = None
         if(english):
-            logo = english[0] 
+            logo = english[0]
         else :
             logo = next(
                 (l for l in logos if l.get("iso_639_1") is None),
@@ -219,25 +219,25 @@ class tmdb_mgr:
             file_path = logo.get("file_path")
             if file_path:   # important safety check
                 self.show_artwork_rows.append({
-                    "tmdb_show_id": tmdb_id,
+                    "tmdb_show_id": tmdb_show_id,
                     "file_path": file_path,
                     "artwork_type": "logo",
                     "width": logo.get("width"),
                     "height": logo.get("height"),
                     "vote_avg": logo.get("vote_average")
                 })
-    
-    def _extract_TMDB_episode_details(self, tmdb_id: str, season_number: int):
+
+    def _extract_TMDB_episode_details(self, tmdb_show_id: int, season_number: int):
         try:
-            episode_details = self.api_client.get_episode_details(tmdb_id, season_number)
+            episode_details = self.api_client.get_episode_details(tmdb_show_id, season_number)
         except Exception as e:
-            self.myLogger.logErrorMessage(f"Error occurred while fetching episode details for TMDb ID {tmdb_id}, Season {season_number}: {str(e)}")
+            self.myLogger.logErrorMessage(f"Error occurred while fetching episode details for TMDb ID {tmdb_show_id}, Season {season_number}: {str(e)}")
             raise
 
         for episode in episode_details.get("episodes", []):
             self.episodes_rows.append({
                 "tmdb_episode_id": episode.get("id"),
-                "tmdb_show_id": tmdb_id,
+                "tmdb_show_id": tmdb_show_id,
                 "season_number": season_number,
                 "episode_number": episode.get("episode_number"),
                 "name": episode.get("name"),
@@ -248,22 +248,22 @@ class tmdb_mgr:
                 "vote_count": episode.get("vote_count"),
                 "still_path": episode.get("still_path")
             })
-            
+
             #get cast and crew details for the episode
-            self._extract_TMDB_cast_crew_details(tmdb_id, season_number, episode.get("episode_number"))
+            self._extract_TMDB_cast_crew_details(tmdb_show_id, season_number, episode.get("episode_number"))
 
 
 
-    def _extract_TMDB_cast_crew_details(self, tmdb_id: str, season_number: int, episode_number: int):
+    def _extract_TMDB_cast_crew_details(self, tmdb_show_id: int, season_number: int, episode_number: int):
         try:
-            cast_crew_details = self.api_client.get_episode_cast_crew_details(tmdb_id, season_number, episode_number)
+            cast_crew_details = self.api_client.get_episode_cast_crew_details(tmdb_show_id, season_number, episode_number)
         except Exception as e:
-            self.myLogger.logErrorMessage(f"Error occurred while fetching cast and crew details for TMDb ID {tmdb_id}, Season {season_number}, Episode {episode_number}: {str(e)}")
+            self.myLogger.logErrorMessage(f"Error occurred while fetching cast and crew details for TMDb ID {tmdb_show_id}, Season {season_number}, Episode {episode_number}: {str(e)}")
             raise
 
         tmdb_episode_id = cast_crew_details.get("id")
         for cast_member in cast_crew_details.get("cast", []):
-            self.episode_cast_rows.append({ 
+            self.episode_cast_rows.append({
                 "tmdb_episode_id": tmdb_episode_id,
                 "tmdb_person_id": cast_member.get("id"),
                 "character": cast_member.get("character"),

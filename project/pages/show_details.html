@@ -18,12 +18,12 @@
                     alt="{{ show.name }} logo"
                 >
             {% else %}
-                <h1>{{ show.name }}</h1>    
+                <h1>{{ show.name }}</h1>
             {% endif %}
             <p class="tagline">{{ show.tagline }}</p>
         </div>
     </section>
-    
+
     <div class="details-container">
         <!-- LEFT COLUMN -->
         <div class="poster-column">
@@ -57,7 +57,7 @@
         <!-- RIGHT COLUMN  -->
         <div class="season-column">
             {% for season in seasons if season.season_number > 0 %}
-                <a class="season-link" href="{{show.tmdb_id}}/season/{{ season.season_number }}">
+                <a class="season-link" href="{{show.tmdb_show_id}}/season/{{ season.season_number }}">
                     Season {{ season.season_number }}
                 </a>
             {% endfor %}

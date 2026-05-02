@@ -63,51 +63,51 @@ class dao_trakt:
 
         # populate the table with the new data
         for index, row in df.iterrows():
-            tmdb_id = row['tmdb_id']
+            tmdb_show_id = row['tmdb_show_id']
             season = row['season_number']
             episode = row['season_episode_number']
             last_watched_at = row['last_watched_at']
             rating = None if pd.isna(row["rating"]) else int(row["rating"])
             rated_at = None if pd.isna(row["rated_at"]) else row["rated_at"]
-            trakt_status_id = f"{tmdb_id}_{season}_{episode}"
+            trakt_status_id = f"{tmdb_show_id}_{season}_{episode}"
 
             # Check if the record already exists in the database
-            existing_status = self.get_status(tmdb_id, season, episode)
+            existing_status = self.get_status(tmdb_show_id, season, episode)
 
             if existing_status:
                 # If it exists, update the record
-                self.update_status(tmdb_id, season, episode, last_watched_at, rating, rated_at)
+                self.update_status(tmdb_show_id, season, episode, last_watched_at, rating, rated_at)
             else:
                 # If it doesn't exist, insert a new record
-                self.insert_status(trakt_status_id, tmdb_id, season, episode, last_watched_at, rating, rated_at)
+                self.insert_status(trakt_status_id, tmdb_show_id, season, episode, last_watched_at, rating, rated_at)
 
-    def insert_status(self,trakt_status_id: str, tmdb_id: str, season: int, episode: int, last_watched_at, rating=None, rated_at=None):
+    def insert_status(self,trakt_status_id: str, tmdb_show_id: str, season: int, episode: int, last_watched_at, rating=None, rated_at=None):
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn) as cur:
-                    args = (trakt_status_id, tmdb_id, season, episode, last_watched_at, rating, rated_at)
+                    args = (trakt_status_id, tmdb_show_id, season, episode, last_watched_at, rating, rated_at)
                     cur.callproc("InsertTraktStatus", args)
                 conn.commit()
             except:
                 conn.rollback()
                 raise
 
-    def update_status(self, tmdb_id: str, season: int, episode: int, last_watched_at, rating=None, rated_at=None):
+    def update_status(self, tmdb_show_id: str, season: int, episode: int, last_watched_at, rating=None, rated_at=None):
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn) as cur:
-                    args = (tmdb_id, season, episode, last_watched_at, rating, rated_at)
+                    args = (tmdb_show_id, season, episode, last_watched_at, rating, rated_at)
                     cur.callproc("UpdateTraktStatus", args)
                 conn.commit()
             except:
                 conn.rollback()
                 raise
 
-    def get_status(self, tmdb_id, season, episode):
+    def get_status(self, tmdb_show_id, season, episode):
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn) as cur:
-                    args = (tmdb_id, season, episode)
+                    args = (tmdb_show_id, season, episode)
                     cur.callproc("GetTraktStatus", args)
                 conn.commit()
             except:

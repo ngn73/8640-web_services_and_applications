@@ -1,6 +1,6 @@
 '''
 Name:dao_tmdb.py
-Description: 
+Description:
 Object-based Data Access Object (DAO) responsible for interacting with the database tables "tmdb_show", "tmdb_season", and "tmdb_episode".
 '''
 
@@ -17,141 +17,198 @@ class dao_tmdb:
 
     # Get all shows in the database (for home page)
     def get_all_shows(self) -> list:
+        shows = []
+
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn, dictionary=True) as cur:
                     cur.callproc("GetAllShows")
 
-                    shows = []
                     for res in cur.stored_results():
+                        columns = res.column_names
                         rows = res.fetchall()
-                        shows.extend(rows)
-                    return shows
-                conn.commit()
-            except:
-                self.mylogger.logErrorMessage("dao_tmdb.get_all_shows -- Error retrieving all shows")
+
+                        for row in rows:
+                            if isinstance(row, dict):
+                                shows.append(row)
+                            else:
+                                shows.append(dict(zip(columns, row)))
+
+            except Exception as ex:
+                self.mylogger.logErrorMessage(
+                    f"dao_tmdb.get_all_shows -- Error retrieving all shows: {ex}"
+                )
                 conn.rollback()
                 raise
-    
+
+        return shows
+
     # Get details for a show by TMDb ID (for show details page)
-    def get_show_details(self, tmdb_id: str) -> dict:
+    def get_show_details(self, tmdb_show_id: int) -> dict:
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn, dictionary=True) as cur:
-                    args = (tmdb_id,)
+                    args = (tmdb_show_id,)
                     cur.callproc("GetShowDetailsByTMDBId", args)
 
                     for res in cur.stored_results():
+                        columns = res.column_names
                         row = res.fetchone()
-                        return row if row else {}
-                conn.commit()
-            except:
-                self.mylogger.logErrorMessage(f"dao_tmdb.get_show_details -- Error retrieving show details with TMDb ID {tmdb_id}")
+
+                        if not row:
+                            return {}
+
+                        if isinstance(row, dict):
+                            return row
+                        else:
+                            return dict(zip(columns, row))
+
+                return {}  # fallback (no result sets)
+
+            except Exception as ex:
+                self.mylogger.logErrorMessage(
+                    f"dao_tmdb.get_show_details -- Error retrieving show details with TMDb ID {tmdb_show_id}: {ex}"
+                )
                 conn.rollback()
                 raise
 
     # Get details for all seasons for a show
-    def get_season_details(self, tmdb_id: str) -> list:
+    def get_season_details(self, tmdb_show_id: int) -> list:
+        seasons = []
+
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn, dictionary=True) as cur:
-                    args = (tmdb_id, -1)  # Use -1 to indicate we want all seasons for the show
+                    args = (tmdb_show_id, -1)
                     cur.callproc("GetSeasonDetailsByTMDBId", args)
 
-                    seasons = []
                     for res in cur.stored_results():
+                        columns = res.column_names
                         rows = res.fetchall()
-                        seasons.extend(rows)
-                    return seasons
-                conn.commit()
-            except:
-                self.mylogger.logErrorMessage(f"dao_tmdb.get_show_seasons -- Error retrieving show seasons with TMDb ID {tmdb_id}")
+
+                        for row in rows:
+                            if isinstance(row, dict):
+                                seasons.append(row)
+                            else:
+                                seasons.append(dict(zip(columns, row)))
+
+                return seasons
+
+            except Exception as ex:
+                self.mylogger.logErrorMessage(
+                    f"dao_tmdb.get_season_details -- Error retrieving show seasons with TMDb ID {tmdb_show_id}: {ex}"
+                )
                 conn.rollback()
                 raise
 
     # Get details for a specific season of a show (same SP as above)
-    def get_season_details_by_number(self, tmdb_id: str, season_number: int) -> dict:
+    def get_season_details_by_number(self, tmdb_show_id: int, season_number: int) -> dict:
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn, dictionary=True) as cur:
-                    args = (tmdb_id, season_number)
+                    args = (tmdb_show_id, season_number)
                     cur.callproc("GetSeasonDetailsByTMDBId", args)
 
                     for res in cur.stored_results():
+                        columns = res.column_names
                         row = res.fetchone()
-                        return row if row else {}
-                conn.commit()
+                        if not row:
+                            return {}
+
+                        if isinstance(row, dict):
+                            return row
+                        else:
+                            return dict(zip(columns, row))
+
+                return {}  # fallback (no result sets)
             except:
-                self.mylogger.logErrorMessage(f"dao_tmdb.get_season_details_by_number -- Error retrieving season details for show ID {tmdb_id}, season number {season_number}")
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_season_details_by_number -- Error retrieving season details for show ID {tmdb_show_id}, season number {season_number}")
                 conn.rollback()
                 raise
 
     # Get details for all episodes for a specific season of a show
-    def get_episode_details(self, tmdb_id: str, season_number: int) -> list:
+    def get_episode_details(self, tmdb_show_id: int, season_number: int) -> list:
+        episodes = []
+
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn, dictionary=True) as cur:
-                    args = (tmdb_id, season_number, -1)  # Use -1 to indicate we want all episodes for the season
+                    args = (tmdb_show_id, season_number, -1)  # Use -1 to indicate we want all episodes for the season
                     cur.callproc("GetSeasonEpisodeDetailsByTMDBId", args)
 
-                    episodes = []
                     for res in cur.stored_results():
-                        rows = res.fetchall()
-                        episodes.extend(rows)
-                    return episodes
-                conn.commit()
+                        columns = res.column_names
+                        rows = res.fetchall() or []
+
+                        for row in rows:
+                            if isinstance(row, dict):
+                                episodes.append(row)
+                            else:
+                                episodes.append(dict(zip(columns, row)))
+                return episodes
             except:
-                self.mylogger.logErrorMessage(f"dao_tmdb.get_episode_details -- Error retrieving episode details for show ID {tmdb_id}, season number {season_number}")
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_episode_details -- Error retrieving episode details for show ID {tmdb_show_id}, season number {season_number}")
                 conn.rollback()
                 raise
-    
-    def get_episode_details_by_number(self, tmdb_id: str, season_number: int, episode_number: int) -> dict:
+
+    def get_episode_details_by_number(self, tmdb_show_id: int, season_number: int, episode_number: int) -> dict:
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn, dictionary=True) as cur:
-                    args = (tmdb_id, season_number, episode_number)
+                    args = (tmdb_show_id, season_number, episode_number)
                     cur.callproc("GetSeasonEpisodeDetailsByTMDBId", args)
 
                     for res in cur.stored_results():
                         row = res.fetchone()
-                        return row if row else {}
-                conn.commit()
+                        if isinstance(row, dict):
+                            return row
+                        else:
+                            return dict(zip(res.column_names, row)) if row else {}
+                return {}  # fallback (no result sets)
             except:
-                self.mylogger.logErrorMessage(f"dao_tmdb.get_episode_details_by_number -- Error retrieving episode details for show ID {tmdb_id}, season number {season_number}, episode number {episode_number}")
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_episode_details_by_number -- Error retrieving episode details for show ID {tmdb_show_id}, season number {season_number}, episode number {episode_number}")
                 conn.rollback()
                 raise
 
-    def get_episode_cast(self, tmdb_id: str, season_number: int, episode_number: int) -> list:
+    def get_episode_cast(self, tmdb_show_id: int, season_number: int, episode_number: int) -> list:
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn, dictionary=True) as cur:
-                    args = (tmdb_id, season_number, episode_number)
+                    args = (tmdb_show_id, season_number, episode_number)
                     cur.callproc("GetEpisodeCastByTMDBId", args)
 
                     cast = []
                     for res in cur.stored_results():
                         rows = res.fetchall()
-                        cast.extend(rows)
+                        for row in rows:
+                            if isinstance(row, dict):
+                                cast.append(row)
+                            else:
+                                cast.append(dict(zip(res.column_names, row)))
                 return cast
             except:
-                self.mylogger.logErrorMessage(f"dao_tmdb.get_episode_cast -- Error retrieving episode cast details for show ID {tmdb_id}, season number {season_number}, episode number {episode_number}")
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_episode_cast -- Error retrieving episode cast details for show ID {tmdb_show_id}, season number {season_number}, episode number {episode_number}")
                 conn.rollback()
                 raise
-            
-    def get_episode_crew(self, tmdb_id: str, season_number: int, episode_number: int) -> list:
+
+    def get_episode_crew(self, tmdb_show_id: int, season_number: int, episode_number: int) -> list:
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn, dictionary=True) as cur:
-                    args = (tmdb_id, season_number, episode_number)
+                    args = (tmdb_show_id, season_number, episode_number)
                     cur.callproc("GetEpisodeCrewByTMDBId", args)
 
                     crew = []
                     for res in cur.stored_results():
                         rows = res.fetchall()
-                        crew.extend(rows)
+                        for row in rows:
+                            if isinstance(row, dict):
+                                crew.append(row)
+                            else:
+                                crew.append(dict(zip(res.column_names, row)))
                 return crew
             except:
-                self.mylogger.logErrorMessage(f"dao_tmdb.get_episode_crew -- Error retrieving episode crew details for show ID {tmdb_id}, season number {season_number}, episode number {episode_number}")
+                self.mylogger.logErrorMessage(f"dao_tmdb.get_episode_crew -- Error retrieving episode crew details for show ID {tmdb_show_id}, season number {season_number}, episode number {episode_number}")
                 conn.rollback()
                 raise
 
@@ -164,14 +221,17 @@ class dao_tmdb:
 
                     for res in cur.stored_results():
                         row = res.fetchone()
-                        return row if row else {}
-                conn.commit()
+                        if isinstance(row, dict):
+                            return row
+                        else:
+                            return dict(zip(res.column_names, row)) if row else {}
+                return {}  # fallback (no result sets)
             except:
                 self.mylogger.logErrorMessage(f"dao_tmdb.get_person_details -- Error retrieving person details for TMDb Person ID {tmdb_person_id}")
                 conn.rollback()
-                raise   
+                raise
 
-    
+
     def get_person_related_roles(self, tmdb_person_id: int) -> list:
         with self.db.get_connection() as conn:
             try:
@@ -182,7 +242,11 @@ class dao_tmdb:
                     related_roles = []
                     for res in cur.stored_results():
                         rows = res.fetchall()
-                        related_roles.extend(rows)
+                        for row in rows:
+                            if isinstance(row, dict):
+                                related_roles.append(row)
+                            else:
+                                related_roles.append(dict(zip(res.column_names, row)))
                 return related_roles
             except:
                 self.mylogger.logErrorMessage(f"dao_tmdb.get_person_related_roles -- Error retrieving person related roles for TMDb Person ID {tmdb_person_id}")
@@ -198,17 +262,21 @@ class dao_tmdb:
                     latest_watched_episodes = []
                     for res in cur.stored_results():
                         rows = res.fetchall()
-                        latest_watched_episodes.extend(rows)
+                        for row in rows:
+                            if isinstance(row, dict):
+                                latest_watched_episodes.append(row)
+                            else:
+                                latest_watched_episodes.append(dict(zip(res.column_names, row)))
                 return latest_watched_episodes
             except:
                 self.mylogger.logErrorMessage(f"dao_tmdb.get_latest_watched_episode_details -- Error retrieving latest watched episode details")
                 conn.rollback()
                 raise
-    
+
     def  bulk_insert_shows(self, shows_rows: list):
         self.mylogger.logInfoMessage("Starting bulk insert of show details into database...")
         for row in shows_rows:
-            tmdb_id = row['tmdb_id']
+            tmdb_show_id = row['tmdb_show_id']
             name = row['name']
             overview = row['overview']
             first_air_date = row['first_air_date']
@@ -218,19 +286,19 @@ class dao_tmdb:
             number_of_seasons = row['number_of_seasons']
             number_of_episodes = row['number_of_episodes']
 
-            self.insert_show(tmdb_id, name, overview, first_air_date, status, vote_average, vote_count, number_of_seasons, number_of_episodes)
+            self.insert_show(tmdb_show_id, name, overview, first_air_date, status, vote_average, vote_count, number_of_seasons, number_of_episodes)
 
 
     #These insert methods with 1 connection and 1 commit per row proved to be inefficient and crash-prone.
-    def insert_show(self, tmdb_id: str, name: str, overview: str, first_air_date: str, status: str, vote_average: float, vote_count: int, number_of_seasons: int, number_of_episodes: int):
+    def insert_show(self, tmdb_show_id: str, name: str, overview: str, first_air_date: str, status: str, vote_average: float, vote_count: int, number_of_seasons: int, number_of_episodes: int):
         with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn) as cur:
-                    args = (tmdb_id, name, overview, first_air_date, status, vote_average, vote_count, number_of_seasons, number_of_episodes)
+                    args = (tmdb_show_id, name, overview, first_air_date, status, vote_average, vote_count, number_of_seasons, number_of_episodes)
                     cur.callproc("InsertTMDBShow", args)
                 conn.commit()
             except:
-                self.mylogger.logErrorMessage(f"dao_tmdb.insert_show -- Error inserting show with TMDb ID {tmdb_id}, {name}, {overview}, {first_air_date}, {status}, {vote_average}, {vote_count}, {number_of_seasons}, {number_of_episodes}")
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_show -- Error inserting show with TMDb ID {tmdb_show_id}, {name}, {overview}, {first_air_date}, {status}, {vote_average}, {vote_count}, {number_of_seasons}, {number_of_episodes}")
                 conn.rollback()
                 raise
 
@@ -243,14 +311,14 @@ class dao_tmdb:
             try:
                 with self.db.get_cursor(conn) as cur:
                     for show in rows:
-                        args = (show["tmdb_id"], show["name"], show["overview"], show["first_air_date"], show["status"], show["vote_average"], show["vote_count"], show["number_of_seasons"], show["number_of_episodes"])
+                        args = (show["tmdb_show_id"], show["name"], show["overview"], show["first_air_date"], show["status"], show["vote_average"], show["vote_count"], show["number_of_seasons"], show["number_of_episodes"])
                         cur.callproc("InsertTMDBShow", args)
                 conn.commit()
             except Exception as e:
                 conn.rollback()
                 self.mylogger.logErrorMessage(f"dao_tmdb.insert_show_batch -- Error inserting batch: {e}"
                 )
-                raise   
+                raise
             finally:
                 if cur:
                     cur.close()
@@ -261,7 +329,7 @@ class dao_tmdb:
         self.mylogger.logInfoMessage("Starting bulk insert of season details into database...")
         for row in seasons_rows:
             tmdb_season_id = row['tmdb_season_id']
-            tmdb_show_id = row['tmdb_id']
+            tmdb_show_id = row['tmdb_show_id']
             season_number = row['season_number']
             name = row['name']
             overview = row['overview']
@@ -293,14 +361,14 @@ class dao_tmdb:
             try:
                 with self.db.get_cursor(conn) as cur:
                     for season in rows:
-                        args = (season["tmdb_season_id"], season["tmdb_id"], season["season_number"], season["name"], season["overview"], season["air_date"], season["episode_count"],  season["poster_path"])
+                        args = (season["tmdb_season_id"], season["tmdb_show_id"], season["season_number"], season["name"], season["overview"], season["air_date"], season["episode_count"],  season["poster_path"])
                         cur.callproc("InsertTMDBSeason", args)
                 conn.commit()
             except Exception as e:
                 conn.rollback()
                 self.mylogger.logErrorMessage(f"dao_tmdb.insert_season_batch -- Error inserting batch: {e}"
                 )
-                raise   
+                raise
             finally:
                 if cur:
                     cur.close()
@@ -314,7 +382,7 @@ class dao_tmdb:
             tmdb_show_id = row['tmdb_show_id']
 
 
-            self.insert_show_network(tmdb_network_id, tmdb_show_id) 
+            self.insert_show_network(tmdb_network_id, tmdb_show_id)
 
     #These insert methods with 1 connection and 1 commit per row proved to be inefficient and crash-prone.
     def insert_show_network(self, tmdb_network_id: int, tmdb_show_id: int):
@@ -328,7 +396,7 @@ class dao_tmdb:
                 self.mylogger.logErrorMessage(f"dao_tmdb.insert_show_network -- Error inserting show network with TMDb Network ID {tmdb_network_id}, TMDb Show ID {tmdb_show_id}")
                 conn.rollback()
                 raise
-    
+
     #Improved efficiency
     def insert_show_network_batch(self, rows: list[tuple[int, int]]):
         conn = None
@@ -345,7 +413,7 @@ class dao_tmdb:
                 conn.rollback()
                 self.mylogger.logErrorMessage(f"dao_tmdb.insert_show_network_batch -- Error inserting batch: {e}"
                 )
-                raise   
+                raise
             finally:
                 if cur:
                     cur.close()
@@ -391,7 +459,7 @@ class dao_tmdb:
                 conn.rollback()
                 self.mylogger.logErrorMessage(f"dao_tmdb.insert_network_batch -- Error inserting batch: {e}"
                 )
-                raise   
+                raise
             finally:
                 if cur:
                     cur.close()
@@ -413,13 +481,13 @@ class dao_tmdb:
                 conn.rollback()
                 self.mylogger.logErrorMessage(f"dao_tmdb.insert_show_artwork_batch -- Error inserting batch: {e}"
                 )
-                raise   
+                raise
             finally:
                 if cur:
                     cur.close()
                 if conn and conn.is_connected():
                     conn.close()
-    
+
     def bulk_insert_episodes(self, episodes_rows: list):
         self.mylogger.logInfoMessage("Starting bulk insert of episode details into database...")
         for row in episodes_rows:
@@ -436,7 +504,7 @@ class dao_tmdb:
             still_path = row['still_path']
 
             self.insert_episode(tmdb_episode_id, tmdb_show_id, season_number, episode_number, name, overview, air_date, runtime,  vote_average, vote_count, still_path)
-    
+
     #These insert methods with 1 connection and 1 commit per row proved to be inefficient and crash-prone.
     def insert_episode(self, tmdb_episode_id: int, tmdb_show_id: int, season_number: int, episode_number: int, name: str, overview: str, air_date: str, runtime: int,  vote_average: float, vote_count: int, still_path: str):
         with self.db.get_connection() as conn:
@@ -448,7 +516,7 @@ class dao_tmdb:
             except:
                 self.mylogger.logErrorMessage(f"dao_tmdb.insert_episode -- Error inserting episode with TMDb Episode ID {tmdb_episode_id}, TMDb Show ID {tmdb_show_id}, Season Number {season_number}, Episode Number {episode_number}, Name {name}, Overview {overview}, Air Date {air_date}, Runtime {runtime}, Vote Average {vote_average}, Vote Count {vote_count}, Still Path {still_path}")
                 conn.rollback()
-                raise   
+                raise
 
     #Improved efficiency
     def insert_episode_batch(self, rows: list[tuple[int, int]]):
@@ -466,7 +534,7 @@ class dao_tmdb:
                 conn.rollback()
                 self.mylogger.logErrorMessage(f"dao_tmdb.insert_episode_batch -- Error inserting batch: {e}"
                 )
-                raise   
+                raise
             finally:
                 if cur:
                     cur.close()
@@ -483,7 +551,7 @@ class dao_tmdb:
             birthday = row['birthday']
             gender = row['gender']
             place_of_birth = row['place_of_birth']
-            profile_path = row['profile_path']  
+            profile_path = row['profile_path']
 
             self.insert_person(person_id, name, biography, birthday, gender, place_of_birth, profile_path)
 
@@ -493,24 +561,24 @@ class dao_tmdb:
             try:
                 with self.db.get_cursor(conn) as cur:
                     args = (person_id, name, biography, birth_date, gender,  place_of_birth, profile_path)
-                    cur.callproc("InsertTMDBPerson", args)  
+                    cur.callproc("InsertTMDBPerson", args)
                 conn.commit()
             except:
                 self.mylogger.logErrorMessage(f"dao_tmdb.insert_person -- Error inserting person with TMDb Person ID {person_id}, Name {name}, Biography {biography[0:10] + ' ..... '}, Birth Date {birth_date}, Gender {gender}, Place of Birth {place_of_birth}, Profile Path {profile_path}")
                 conn.rollback()
-                raise   
+                raise
 
     #Improved efficiency
     def insert_person_batch(self, rows: list[tuple[int, int]]):
         conn = None
         cur = None
 
-        with self.db.get_connection() as conn:  
+        with self.db.get_connection() as conn:
             try:
                 with self.db.get_cursor(conn) as cur:
                     for person in rows:
                         args = (person["tmdb_person_id"], person["person_name"], person["biography"], person["birthday"], person["gender"], person["place_of_birth"], person["profile_path"])
-                        cur.callproc("InsertTMDBPerson", args)  
+                        cur.callproc("InsertTMDBPerson", args)
                 conn.commit()
 
             except Exception as e:
@@ -526,7 +594,7 @@ class dao_tmdb:
                 if conn and conn.is_connected():
                     conn.close()
 
-    
+
     def bulk_insert_cast_crew(self, episode_cast_rows: list, episode_crew_rows: list):
         self.mylogger.logInfoMessage("Starting bulk insert of episode cast and crew details into database...")
         for row in episode_cast_rows:
@@ -543,7 +611,7 @@ class dao_tmdb:
             job = row['job']
             department = row['department']
 
-            self.insert_crew_member(tmdb_episode_id, person_id, job, department)  
+            self.insert_crew_member(tmdb_episode_id, person_id, job, department)
 
     #These insert methods with 1 connection and 1 commit per row proved to be inefficient and crash-prone.
     def insert_crew_member(self, tmdb_episode_id: int, person_id: int, job: str, department: str):
@@ -554,7 +622,7 @@ class dao_tmdb:
                     cur.callproc("InsertTMDBEpisodeCrew", args)
                 conn.commit()
             except:
-                self.mylogger.logErrorMessage(f"dao_tmdb.insert_crew_member -- Error inserting crew member with TMDb Episode ID {tmdb_episode_id}, TMDb Person ID {person_id}, Job {job}, Department {department}")    
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_crew_member -- Error inserting crew member with TMDb Episode ID {tmdb_episode_id}, TMDb Person ID {person_id}, Job {job}, Department {department}")
                 conn.rollback()
                 raise
 
@@ -592,7 +660,7 @@ class dao_tmdb:
                     cur.callproc("InsertTMDBEpisodeCast", args)
                 conn.commit()
             except:
-                self.mylogger.logErrorMessage(f"dao_tmdb.insert_cast_member -- Error inserting cast member with TMDb Episode ID {tmdb_episode_id}, TMDb Person ID {person_id}, Character {character}, Order {order}")  
+                self.mylogger.logErrorMessage(f"dao_tmdb.insert_cast_member -- Error inserting cast member with TMDb Episode ID {tmdb_episode_id}, TMDb Person ID {person_id}, Character {character}, Order {order}")
                 conn.rollback()
                 raise
 
@@ -631,7 +699,7 @@ class dao_tmdb:
                 self.mylogger.logErrorMessage("dao_tmdb.clear_tmdb -- Error clearing TMDB tables")
                 conn.rollback()
                 raise
-    
+
     #Extract all artwork for a show (posters, backdrops, logos)
     def get_show_artwork(self, tmdb_show_id: int):
         with self.db.get_connection() as conn:
@@ -652,7 +720,7 @@ class dao_tmdb:
                 conn.rollback()
                 raise
 
-    #Extract a rated (or random) piece of artwork for each type (poster, backdrop, logo) for a show
+    # Extract a rated (or random) piece of artwork for each type (poster, backdrop, logo) for a show
     def get_show_artwork(self, tmdb_show_id: int, rated: bool) -> dict:
         artwork = {
             "poster": {},
@@ -665,22 +733,34 @@ class dao_tmdb:
                 with self.db.get_cursor(conn, dictionary=True) as cur:
                     for artwork_type in ["poster", "backdrop", "logo"]:
                         args = (tmdb_show_id, artwork_type)
+
                         if rated:
-                            cur.callproc("GetRatedArtwork", args)   #SP returns the highest rated artwork
+                            cur.callproc("GetRatedArtwork", args)
                         else:
-                            cur.callproc("GetRndArtwork", args)  # SP returns a random piece of artwork
+                            cur.callproc("GetRndArtwork", args)
 
                         for res in cur.stored_results():
+                            columns = res.column_names
                             row = res.fetchone()
-                            if row:
-                                artwork[artwork_type] = {
-                                    "file_path": row["file_path"],
-                                    "artwork_type": row["artwork_type"],
-                                    "width": row["width"],
-                                    "height": row["height"]
-                                }
+
+                            if not row:
+                                continue
+
+                            if not isinstance(row, dict):
+                                row = dict(zip(columns, row))
+
+                            artwork[artwork_type] = {
+                                "file_path": row.get("file_path"),
+                                "artwork_type": row.get("artwork_type"),
+                                "width": row.get("width"),
+                                "height": row.get("height")
+                            }
+
                 return artwork
-            except:
-                self.mylogger.logErrorMessage(f"dao_tmdb.get_rnd_show_artwork -- Error retrieving random artwork for show ID {tmdb_show_id}")
+
+            except Exception as ex:
+                self.mylogger.logErrorMessage(
+                    f"dao_tmdb.get_show_artwork -- Error retrieving artwork for show ID {tmdb_show_id}: {ex}"
+                )
                 conn.rollback()
                 raise

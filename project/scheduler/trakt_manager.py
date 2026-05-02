@@ -12,12 +12,13 @@ class trakt_mgr:
         self.mylogger = logger.app_logger(__name__)
         self.db_client = self._get_db_mgr()
         self.dao_trakt = dao.dao_trakt(self.db_client)
-        
+
         self.trakt_auth = self.dao_trakt.get_trakt_auth()
         self.api_client = api.api_trakt(self.trakt_auth, self.dao_trakt, self.mylogger)
+        self.EXCLUDED_TMDB_IDS = {83109}
 
     def extract_and_save_trakt_data(self):
-        # Get the latest trakt data from the API and save it to the database  
+        # Get the latest trakt data from the API and save it to the database
         trakt_df = self._get_trakt_data()
         self._save_to_db(trakt_df)
 
@@ -29,10 +30,10 @@ class trakt_mgr:
         #Convert the raw json data into DataFrames and merge them.
         watched_df = self._watched_data_to_df(watched_data)
         ratings_df = self._ratings_data_to_df(ratings_data)
-        final_df = self._merge_watched_and_ratings(watched_df, ratings_df)    
+        final_df = self._merge_watched_and_ratings(watched_df, ratings_df)
 
         return final_df
-    
+
     # Convert the raw json "watched" data from the API into a DataFrame
     def _watched_data_to_df(self, watched_data: list) -> pd.DataFrame :
         watched_rows = []
@@ -41,15 +42,18 @@ class trakt_mgr:
         for show_item in watched_data:
             show = show_item.get("show", {})
             show_ids = show.get("ids", {})
-            tmdb_id = show_ids.get("tmdb")
+            tmdb_show_id = show_ids.get("tmdb")
             title = show.get("title")
+
+            if tmdb_show_id in self.EXCLUDED_TMDB_IDS:
+                continue
 
             for season in show_item.get("seasons", []):
                 season_number = season.get("number")
 
                 for episode in season.get("episodes", []):
                     watched_rows.append({
-                        "tmdb_id": tmdb_id,
+                        "tmdb_show_id": tmdb_show_id,
                         "title": title,
                         "season_number": season_number,
                         "season_episode_number": episode.get("number"),
@@ -61,15 +65,19 @@ class trakt_mgr:
     # Convert the raw json "rating" data from the API into a DataFrame
     def _ratings_data_to_df(self, ratings_data: list) -> pd.DataFrame:
         ratings_rows = []
-        # Flatten the ratings data to get a row for each episode rating 
+        # Flatten the ratings data to get a row for each episode rating
         # with the show id, season number, episode number, rating, and rated date.
         for rating_item in ratings_data:
             show = rating_item.get("show", {})
             show_ids = show.get("ids", {})
             episode = rating_item.get("episode", {})
+            tmdb_show_id = show_ids.get("tmdb")
+
+            if tmdb_show_id in self.EXCLUDED_TMDB_IDS:
+                continue
 
             ratings_rows.append({
-                "tmdb_id": show_ids.get("tmdb"),
+                "tmdb_show_id": show_ids.get("tmdb"),
                 "season_number": episode.get("season"),
                 "season_episode_number": episode.get("number"),
                 "rated_at": rating_item.get("rated_at"),
@@ -78,21 +86,26 @@ class trakt_mgr:
 
         return pd.DataFrame(ratings_rows)
 
-    # Merge the "watched" and "ratings" DataFrames on tmdb_id, season number, and episode number.
+    # Merge the "watched" and "ratings" DataFrames on tmdb_show_id, season number, and episode number.
     def _merge_watched_and_ratings(self, watched_df, ratings_df):
         return watched_df.merge(
             ratings_df,
-            on=["tmdb_id", "season_number", "season_episode_number"],
+            on=["tmdb_show_id", "season_number", "season_episode_number"],
             how="left" # use left join as not all watched episodes will have ratings
         )
 
     # Get a database manager instance
     def _get_db_mgr(self):
+        cfg_host = cfg.CRUD["host"]
+        cfg_user = cfg.CRUD["user"]
+        cfg_password = cfg.CRUD["password"]
+        cfg_database = cfg.CRUD["database"]
+        self.mylogger.logInfoMessage(f"Creating sbManager with host : {cfg_host}, user: {cfg_user}, password:{cfg_password}, database: {cfg_database}")
         db_client = db.dbManager(
-            host=cfg.CRUD["host"],
-            user=cfg.CRUD["user"],
-            password=cfg.CRUD["password"],
-            database=cfg.CRUD["database"]
+            host=cfg_host,
+            user=cfg_user,
+            password=cfg_password,
+            database=cfg_database
         )
         return db_client
 
@@ -101,7 +114,19 @@ class trakt_mgr:
         dao_trakt = dao.dao_trakt(db_client)
         dao_trakt.bulk_insert(trakt_df)
 
+    def test_data_connection(self):
+        try:
+            self.mylogger.logInfoMessage(f"Starting Test Connection")
+            db_client = self._get_db_mgr()
+            self.mylogger.logInfoMessage(f"Creating DAO")
+            dao_trakt = dao.dao_trakt(db_client)
+            db_auth = dao_trakt.get_trakt_auth()
+            self.mylogger.logInfoMessage(f"access_token:{db_auth["access_token"]}, refresh_token:{db_auth["refresh_token"]}, token_type{db_auth.get("token_type")}, expires_in{db_auth.get("expires_in")}, created_at{db_auth.get("created_at")}")
+        except Exception as e:
+            self.mylogger.logErrorMessage(f"Error occurred in Test Connection: {str(e)}")
 
- 
-        
+
+
+
+
 

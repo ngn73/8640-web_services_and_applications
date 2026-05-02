@@ -268,25 +268,25 @@ CREATE PROCEDURE GetSeasonEpisodeDetailsByTMDBId(
 )
 BEGIN
     SELECT 
-        tmdb_episode_id,
-        tmdb_show_id,
-        season_number,
-        episode_number,
-        name,
-        overview,
-        air_date,
-        runtime,
-        vote_average,
-        vote_count,
-        still_path,
-        last_watched_at,
-        rating
+        E.tmdb_episode_id,
+        E.tmdb_show_id,
+        E.season_number,
+        E.episode_number,
+        E.name,
+        E.overview,
+        E.air_date,
+        E.runtime,
+        E.vote_average,
+        E.vote_count,
+        E.still_path,
+        T.last_watched_at,
+        T.rating
     FROM TMDB_EPISODE E
     LEFT JOIN TRAKT_STATUS T
     ON E.tmdb_show_id = T.tmdb_show_id AND E.season_number = T.season AND E.episode_number = T.episode
-    WHERE tmdb_show_id = p_tmdb_show_id
-    AND season_number = p_season_number
-    AND (p_episode_number = -1 OR episode_number = p_episode_number);
+    WHERE E.tmdb_show_id = p_tmdb_show_id
+    AND E.season_number = p_season_number
+    AND (p_episode_number = -1 OR E.episode_number = p_episode_number);
 END $$
 
 -- =========================================
@@ -399,7 +399,7 @@ BEGIN
     SELECT 
         P.tmdb_person_id as tmdb_person_id,
         P.person_name AS person_name,
-        e.tmdb_show_id AS tmdb_show_id,
+        E.tmdb_show_id AS tmdb_show_id,
         (SELECT S.name FROM TMDB_SHOW S WHERE S.tmdb_show_id = E.tmdb_show_id) AS show_name,
         EC.character_name   AS character_name,
         E.name AS episode_name,
@@ -425,8 +425,8 @@ BEGIN
     (
         SELECT 
         T.trakt_status_id, T.tmdb_show_id, S.name, T.season, T.episode, T.rating, T.last_watched_at, DAYOFWEEK(T.last_watched_at) AS dayofweek 
-        FROM trakt_status T
-        INNER JOIN tmdb_show S
+        FROM TRAKT_STATUS T
+        INNER JOIN TMDB_SHOW S
         ON T.tmdb_show_id = S.tmdb_show_id
     ),
     SQL2
@@ -440,7 +440,7 @@ BEGIN
     AS
     (
         SELECT T.trakt_status_id, T.tmdb_show_id, T.season, T.episode, T.rating, T.last_watched_at, S.dayofweek, S.latestdate 
-        FROM trakt_status T
+        FROM TRAKT_STATUS T
         INNER JOIN SQL2 S
         ON DATE(T.last_watched_at) = DATE(S.latestdate)
     ),
@@ -450,7 +450,7 @@ BEGIN
         SELECT T.trakt_status_id, T.tmdb_show_id, T.season, T.episode, T.rating, T.last_watched_at, T.dayofweek, T.latestdate,
         (
             SELECT A.file_path
-            FROM tmdb_show_artwork A
+            FROM TMDB_SHOW_ARTWORK A
             WHERE A.artwork_type = 'poster'
             AND A.tmdb_show_id = T.tmdb_show_id
             ORDER BY A.vote_average DESC
@@ -458,7 +458,7 @@ BEGIN
         ) AS 'poster',
         (
             SELECT A.file_path
-            FROM tmdb_show_artwork A
+            FROM TMDB_SHOW_ARTWORK A
             WHERE A.artwork_type = 'logo'
             AND A.tmdb_show_id = T.tmdb_show_id
             ORDER BY A.vote_average DESC
@@ -634,6 +634,7 @@ END $$
 -- ===============================================
 CREATE PROCEDURE ClearTMDBTables()
 BEGIN
+    DELETE FROM TMDB_SHOW_ARTWORK;
     DELETE FROM TMDB_EPISODE_CREW;
     DELETE FROM TMDB_EPISODE_CAST;
     DELETE FROM TMDB_PERSON;
@@ -642,7 +643,7 @@ BEGIN
     DELETE FROM TMDB_SHOW_NETWORK;
     DELETE FROM TMDB_NETWORK;
     DELETE FROM TMDB_SHOW;
-    DELETE FROM TMDB_SHOW_ARTWORK;
+    
 
     SELECT 
         (SELECT COUNT(*) FROM TMDB_SHOW) AS remaining_shows,

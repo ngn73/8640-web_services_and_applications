@@ -156,10 +156,10 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    font-size: 1.5rem;
-    font-weight: 600;
+    font-size: 1.0rem;
+    font-weight: 400;
     color: #cfcfcf;
-    background: rgb(40, 60, 40);
+    background: rgb(10, 30, 10);
 }
 
 .page-header {

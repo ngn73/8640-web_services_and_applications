@@ -73,12 +73,12 @@
                             <p class="episode-overview">
                                 Aired : {{ episode.air_date if episode.air_date else 'No air date available.' }}
                             </p>
-                            
+
                         </div>
                         <div class="episode-actions">
                             <a
                                 class="episode-action-link"
-                                href="{{ url_for('episode_cast', tmdb_show_id=show.tmdb_id, season_number=season.season_number, episode_number=episode.episode_number) }}"
+                                href="{{ url_for('episode_cast', tmdb_show_id=show.tmdb_show_id, season_number=season.season_number, episode_number=episode.episode_number) }}"
                             >
                                 Cast / Crew
                             </a>
@@ -87,7 +87,7 @@
                             <p class="watch-status">
                                 Watched: {{ episode.last_watched_at.strftime('%Y-%m-%d') if episode.last_watched_at else 'No' }}
                             </p>
-                            
+
                             <p class="trakt-episode-rating">
                                 ★ {{ episode.rating if episode.rating else '--' }}/10
                             </p>
