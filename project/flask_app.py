@@ -71,9 +71,6 @@ def season_details(tmdb_show_id, season_number):
         episodes=episodes
     )
 
-@app.route("/show/<int:tmdb_show_id>/season/<int:season_number>/episode/<int:episode_number>/crew")
-def episode_crew(tmdb_show_id, season_number, episode_number):
-    pass
 
 @app.route("/person/<int:tmdb_person_id>/show/<int:tmdb_show_id>/season/<int:season_number>/episode/<int:episode_number>")
 def person_detail(tmdb_person_id, tmdb_show_id, season_number, episode_number):
@@ -91,6 +88,11 @@ def person_detail(tmdb_person_id, tmdb_show_id, season_number, episode_number):
         related_roles=related_roles,
         source=source
     )
+
+# Redundant endpoint for the episode Crew details page (as Crew was combined with Cast)
+@app.route("/show/<int:tmdb_show_id>/season/<int:season_number>/episode/<int:episode_number>/crew")
+def episode_crew(tmdb_show_id, season_number, episode_number):
+    pass
 
 
 @app.route("/show/<int:tmdb_show_id>/season/<int:season_number>/episode/<int:episode_number>/cast")

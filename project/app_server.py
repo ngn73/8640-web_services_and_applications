@@ -1,3 +1,9 @@
+# ===========================================================================
+# app_server.py
+# This file contains the Flask application that serves the web pages. 
+# It was replaced with flask_app.py (after pythonanywhere deployment)
+# ===========================================================================
+
 from flask import Flask, render_template # also import render_template to render HTML templates (with jinja2)
 from data.dao_tmdb import dao_tmdb
 import data.dbManager as dbManager
