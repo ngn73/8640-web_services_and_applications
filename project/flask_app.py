@@ -4,7 +4,7 @@
 # It replaced app_server.py (after pythonanywhere deployment)
 # ===========================================================================
 
-from flask import Flask, render_template # also import render_template to render HTML templates (with jinja2)
+from flask import Flask, render_template, request # also import render_template to render HTML templates (with jinja2)
 from data.dao_tmdb import dao_tmdb
 import data.dbManager as dbManager
 import config as cfg
@@ -31,13 +31,10 @@ def hello_world():
 # endpoint for the home page
 @app.route("/shows")
 def shows():
-    shows = dao.get_all_shows()
+    sort = request.args.get("sort", "title")  # default
+    shows = dao.get_all_shows(sort)
 
-    print(f"Shows type: {type(shows)}")
-    print(f"Shows count: {len(shows) if shows else 0}")
-    print(f"First show: {shows[0] if shows else 'NO SHOWS'}")
-
-    return render_template("shows.html", shows=shows)
+    return render_template("shows.html", shows=shows, sort=sort)
 
 # endpoint for the show details page
 @app.route("/show/<int:tmdb_show_id>")

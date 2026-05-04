@@ -15,8 +15,9 @@ class dao_tmdb:
         self.mylogger = logger.app_logger(__name__)
         self.db = mydb
 
+    
     # Get all shows in the database (for home page)
-    def get_all_shows(self) -> list:
+    def get_all_shows(self, sort) -> list:
         shows = []
 
         with self.db.get_connection() as conn:
@@ -34,6 +35,12 @@ class dao_tmdb:
                             else:
                                 shows.append(dict(zip(columns, row)))
 
+                if sort == "title":
+                    return sorted(shows, key=lambda x: x["name"] or "")
+                elif sort == "air_date":
+                    return sorted(shows, key=lambda x: x["first_air_date"] or "", reverse=True)
+                elif sort == "watched_date":
+                    return sorted(shows, key=lambda x: x["latest_watched_date"] or "", reverse=True)
             except Exception as ex:
                 self.mylogger.logErrorMessage(
                     f"dao_tmdb.get_all_shows -- Error retrieving all shows: {ex}"

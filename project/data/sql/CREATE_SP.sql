@@ -194,7 +194,12 @@ SELECT
         AND A.tmdb_show_id = TMDB.tmdb_show_id
         ORDER BY A.vote_average DESC
         LIMIT 1
-    ) AS poster_path
+    ) AS poster_path,
+    (
+        SELECT MAX(T.last_watched_at)
+        FROM TRAKT_STATUS T
+        WHERE T.tmdb_show_id = TMDB.tmdb_show_id
+    ) AS latest_watched_date
 FROM TMDB_SHOW TMDB
 LEFT JOIN (
     SELECT

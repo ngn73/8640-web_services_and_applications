@@ -11,14 +11,28 @@ body {
     line-height: 1.5;
 }
 
+.header-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.header-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 .shows-page {
     max-width: 1500px;
     margin: 0 auto;
     padding: 32px 40px 50px;
 }
 
+
 .shows-header {
-    margin-bottom: 28px;
+    display: flex;
+    justify-content: space-between; /* pushes left vs right */
+    align-items: center;            /* vertical alignment */
+    gap: 20px;
 }
 
 .shows-header h1 {

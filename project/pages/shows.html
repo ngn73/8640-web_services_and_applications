@@ -9,8 +9,18 @@
 {% block content %}
     <div class="shows-page">
         <header class="shows-header">
-            <h1>Shows</h1>
-            <p class="shows-subtitle">Browse your TV library</p>
+            <div class="header-left">
+                <h1>Shows</h1>
+                <p class="shows-subtitle">Browse your TV library</p>
+            </div>
+            <form method="get" action="/shows" class="header-form">
+                <label for="sort">Sort by:</label>
+                <select name="sort" onchange="this.form.submit()">
+                    <option value="title" {{ 'selected' if sort == 'title' else '' }}>Title</option>
+                    <option value="air_date" {{ 'selected' if sort == 'air_date' else '' }}>Air Date</option>
+                    <option value="watched_date" {{ 'selected' if sort == 'watched_date' else '' }}>Watched Date</option>
+                </select>
+            </form>
         </header>
 
         <section class="shows-grid">
