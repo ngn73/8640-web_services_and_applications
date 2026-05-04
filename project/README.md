@@ -1,12 +1,12 @@
 # 8640-web_services_and_applications
 # <font color="orange">RESTful API Project</font>
 
-<img src="images/panda_tv.png" alt="Panda" height="300" style="margin-right: 40px;"><img src="images/peaky_blinders.png" alt="Panda" height="300">  
+<img src="images/panda_tv.png" alt="Panda" height="300" style="margin-right: 40px;"><img src="images/landman.png" alt="Panda" height="300">  
 
 Welcome to the Repository for Big Project Work assigned on ATU Module **25-26: 8640 -- Web Services and Applications**   
 </br>
 The subject of this RESTful API Project will be **Television Shows**.  
-This is driven by a long-term personal interest in the subject.  
+This is driven by a long-term personal love of the subject.  
 Television Shows have been chosen over **Movies** as they present a greater technical challenge, particularly in handling hierarchical relationships between Shows, Seasons, and Episodes (and that I watch more TV Shows than Movies).  
   
 There are numerous API services available that provide structured data on TV Shows ... including seasons, episodes, cast, and production details  
@@ -33,9 +33,14 @@ I will initially ...
 * Feed this TMDB Data into a MySQL based database
 * Develop a RESTful API to allow users interact with the data on this Database
 
-A collection of Notebooks with extended details on using the Trakt and TMDB API, and the Data Model utilized.   
-[Trakt API Overview](notebooks/trakt_api.ipynb)  
+A collection of Notebooks with extended details on using the Trakt and TMDB API, the Data Model, scheduled jobs, and the final Web Application.   https://ngnwatchs.pythonanywhere.com/shows  
+
+
+[Trakt API](notebooks/trakt_api.ipynb)  
 [TMDB API](notebooks/tmdb_api.ipynb)  
 [MySQL Data Model](notebooks/data_model.ipynb)  
+[Scheduled Jobs](notebooks/scheduled_jobs.ipynb)  
+[Web Application](notebooks/web_application.ipynb)  
+
  
 
