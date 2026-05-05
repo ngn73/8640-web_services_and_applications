@@ -20,6 +20,50 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    font-size: 14px;
+}
+
+/* Wrapper for custom arrow */
+.select-wrapper {
+    position: relative;
+}
+/* Style the select */
+.select-wrapper select {
+    appearance: none;          /* remove default styling */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    padding: 8px 35px 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Hover */
+.select-wrapper select:hover {
+    border-color: #888;
+}
+
+/* Focus */
+.select-wrapper select:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* Custom dropdown arrow */
+.select-wrapper::after {
+    content: "▾";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #555;
+    font-size: 12px;
 }
 .shows-page {
     max-width: 1500px;
@@ -112,6 +156,7 @@ body {
     color: #c6c6c6;
     font-size: 0.88rem;
 }
+
 
 @media (max-width: 700px) {
     .shows-page {

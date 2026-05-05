@@ -15,11 +15,13 @@
             </div>
             <form method="get" action="/shows" class="header-form">
                 <label for="sort">Sort by:</label>
-                <select name="sort" onchange="this.form.submit()">
-                    <option value="title" {{ 'selected' if sort == 'title' else '' }}>Title</option>
-                    <option value="air_date" {{ 'selected' if sort == 'air_date' else '' }}>Air Date</option>
-                    <option value="watched_date" {{ 'selected' if sort == 'watched_date' else '' }}>Watched Date</option>
-                </select>
+                <div class="select-wrapper">
+                    <select name="sort" onchange="this.form.submit()">
+                        <option value="title" {{ 'selected' if sort == 'title' else '' }}>Title</option>
+                        <option value="air_date" {{ 'selected' if sort == 'air_date' else '' }}>Air Date</option>
+                        <option value="watched_date" {{ 'selected' if sort == 'watched_date' else '' }}>Watched Date</option>
+                    </select>
+                </div>
             </form>
         </header>
 

@@ -12,24 +12,17 @@
 </head>
 <body>
 {% block header %}
-    <header class="site-header">
-        <div class="header-inner">
+<header class="site-header">
+    <a href="{{ url_for('shows') }}" class="site-brand">
+        <img src="{{ url_for('static', filename='images/logo.svg') }}" class="logo" alt="TV Tracker">
+        <span>TV Tracker</span>
+    </a>
 
-            <div class="header-left">
-                <a href="{{ url_for('shows') }}" class="site-logo">TV Tracker</a>
-            </div>
-
-            <nav class="site-nav">
-                <a href="{{ url_for('shows') }}">Home</a>
-                <a href="{{ url_for('weekly_watch_plan') }}">This Week</a>
-            </nav>
-
-            <div class="header-right">
-                <!-- empty for now or future icons -->
-            </div>
-
-        </div>
-    </header>
+    <nav class="site-nav">
+        <a href="{{ url_for('shows') }}">Shows</a>
+        <a href="{{ url_for('weekly_watch_plan') }}">Watch Plan</a>
+    </nav>
+</header>
 {% endblock %}
     <main class="site-main">
         {% block content %}{% endblock %}
