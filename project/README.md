@@ -1,9 +1,12 @@
 # 8640-web_services_and_applications
 # <font color="orange">RESTful API Project</font>
 
-<img src="images/panda_tv.png" alt="Panda" height="300" style="margin-right: 40px;"><img src="images/landman.png" alt="Panda" height="300">  
+<img src="images/panda_tv_logo.png" alt="Panda" height="300" style="margin-right: 40px;">
+<img src="images/landman.png" alt="show_detail" height="300">  
 
 Welcome to the Repository for Big Project Work assigned on ATU Module **25-26: 8640 -- Web Services and Applications**   
+</br>
+The end-result of this project work was the "TV Tracker" Web Application: https://ngnwatchs.pythonanywhere.com/shows  
 </br>
 The subject of this RESTful API Project will be **Television Shows**.  
 This is driven by a long-term personal love of the subject.  
