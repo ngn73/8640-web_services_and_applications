@@ -70,7 +70,7 @@ class tmdb_mgr:
         else:
             self.myLogger.logInfoMessage(f"Found {len(trakt_shows)} shows in trakt_status table. Starting extraction of TMDb details for these shows.", ntfy=True)
             self._load_trakt_data(trakt_shows)  #Populate the lists
-            self._save_to_db()                  #Save the lists to the database using the DAO methods
+            self._save_to_db(clear=False) #Save the lists to the database using the DAO methods
 
         self.myLogger.logInfoMessage("TMDb data extraction and insertion for delta load completed.", ntfy=True)
 
@@ -87,11 +87,12 @@ class tmdb_mgr:
         self.myLogger.logInfoMessage("TMDb data extraction and insertion for full load completed.", ntfy=True)
 
     #Save the extracted TMDb details into the database using the DAO methods
-    def _save_to_db(self):
+    def _save_to_db(self, clear:bool = True):
         # Insert the list data into the database
         self.myLogger.logInfoMessage("TMDb data insertion starting ...")
 
-        self.dao_tmdb.clear_tmdb() # Clear the existing TMDB data before inserting the new data.
+        if clear:
+            self.dao_tmdb.clear_tmdb() # Clear the existing TMDB data before inserting the new data.
         self.dao_tmdb.insert_show_batch(self.shows_rows)
         self.dao_tmdb.insert_season_batch(self.seasons_rows)
         self.dao_tmdb.insert_episode_batch(self.episodes_rows)
