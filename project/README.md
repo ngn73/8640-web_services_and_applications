@@ -29,11 +29,12 @@ This "Watch" list from Trakt will form the basis for a database of TV Shows data
 A RESTful API will be created to provide access to this Database of TV Shows  
 Finally, a graphical Web Application will be created to display the data in this Database.  
 
-I will initially ...  
+I will ...  
 * Use the Trakt API to get my watch history collection. 
 * Based on data extracted from Trakt, I will then use the TMDB API to get the full Show/Season/Episode/Cast metadata details
 * Feed this TMDB Data into a MySQL based database
-* Develop a RESTful API to allow users interact with the data on this Database
+* Develop a RESTful API and graphical Web Application to allow users interact with the data on this Database
+ 
 
 A collection of Notebooks with extended details on using the Trakt and TMDB API, the Data Model, scheduled jobs, and the final Web Application.   https://ngnwatchs.pythonanywhere.com/shows  
 
