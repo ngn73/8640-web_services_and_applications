@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}404 Error{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/404.css') }}">
+{% endblock %}
+{% block content %}
+
+<div class="error-page">
+    <a href="{{ url_for('shows') }}" class="home-btn">
+        Return Home
+    </a>
+</div>
+
+{% endblock %}

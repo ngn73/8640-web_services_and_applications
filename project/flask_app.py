@@ -24,9 +24,9 @@ app = Flask(__name__, template_folder="pages")
 db_client = get_db_mgr()
 dao = dao_tmdb(db_client)
 
-@app.route('/')
-def hello_world():
-    return 'Hello from Flask!'
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template("not_found.html"), 404
 
 # endpoint for the home page
 @app.route("/shows")
@@ -41,15 +41,14 @@ def shows():
 def show_details(tmdb_show_id):
     # Get the show details
     show = dao.get_show_details(tmdb_show_id)
+
+    if not show:
+        return render_template("404.html", tmdb_show_id=tmdb_show_id), 404
+    
     # Get the show artwork Url's
     artwork = dao.get_show_artwork(tmdb_show_id, rated=False)
     # Get the show seasons
     seasons = dao.get_season_details(tmdb_show_id)
-
-
-
-    if not show:
-        return "TV Show not found", 404
 
     # pass the show details (and artwork) to the template for rendering
     return render_template("show_details.html", show=show, artwork=artwork, seasons=seasons)
@@ -61,6 +60,9 @@ def season_details(tmdb_show_id, season_number):
     season = dao.get_season_details_by_number(tmdb_show_id, season_number)
     episodes = dao.get_episode_details(tmdb_show_id, season_number)
 
+    if not show or not season :
+        return render_template("404.html", tmdb_show_id=tmdb_show_id), 404
+    
     return render_template(
         "season_details.html",
         show=show,
@@ -72,6 +74,10 @@ def season_details(tmdb_show_id, season_number):
 @app.route("/person/<int:tmdb_person_id>/show/<int:tmdb_show_id>/season/<int:season_number>/episode/<int:episode_number>")
 def person_detail(tmdb_person_id, tmdb_show_id, season_number, episode_number):
     person = dao.get_person_details(tmdb_person_id)
+
+    if not person:
+        return render_template("404.html", tmdb_show_id=tmdb_show_id), 404
+    
     related_roles = dao.get_person_related_roles(tmdb_person_id)
     source = {  # Needed to return the episode page
         "tmdb_show_id": tmdb_show_id,
@@ -100,6 +106,9 @@ def episode_cast(tmdb_show_id, season_number, episode_number):
     cast = dao.get_episode_cast(tmdb_show_id, season_number, episode_number)
     crew = dao.get_episode_crew(tmdb_show_id, season_number, episode_number)
 
+    if not show or not season or not episode:
+        return render_template("404.html", tmdb_show_id=tmdb_show_id), 404
+    
     return render_template(
         "episode_cast.html",
         show=show,
@@ -113,6 +122,10 @@ def episode_cast(tmdb_show_id, season_number, episode_number):
 @app.route("/weekly_watch_plan")
 def weekly_watch_plan():
     weekly_rows = dao.get_latest_watched_episode_details()
+
+    if not weekly_rows:
+        return render_template("404.html"), 404 
+    
     return render_template("weekly_watch_plan.html", weekly_rows=weekly_rows)
 
 if __name__ == '__main__':
