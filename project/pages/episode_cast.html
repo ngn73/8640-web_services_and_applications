@@ -6,27 +6,22 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/episode_cast.css') }}">
 {% endblock %}
 
-{% block header %}
-    <div class="episode-cast-page">
-        <header class="page-top">
-            <div class="nav-links">
-                <a href="{{ url_for('shows') }}" class="nav-link">Home</a>
-                <a href="{{ url_for('season_details', tmdb_show_id=show.tmdb_show_id, season_number=season.season_number) }}" class="nav-link">
-                    Back to Season
-                </a>
-            </div>
-
-            <div class="page-heading">
-                <p class="episode-label">Episode Cast</p>
-                <h1>
-                    {{ show.name }} — S{{ season.season_number }}E{{ episode.episode_number }}
-                </h1>
-                <h2>{{ episode.name }}</h2>
-            </div>
-        </header>
-{% endblock %}
-
 {% block content %}
+    <div class="episode-cast-page">
+        <div class="nav-links">
+            <a href="{{ url_for('season_details', tmdb_show_id=show.tmdb_show_id, season_number=season.season_number) }}" class="nav-link">
+                Back to Season
+            </a>
+        </div>
+
+        <div class="page-heading">
+            <p class="episode-label">Episode Cast</p>
+            <h1>
+                {{ show.name }} — S{{ season.season_number }}E{{ episode.episode_number }}
+            </h1>
+            <h2>{{ episode.name }}</h2>
+        </div>
+
         <section class="episode-summary">
             {% if episode.still_path %}
                 <div class="episode-still-wrap">
